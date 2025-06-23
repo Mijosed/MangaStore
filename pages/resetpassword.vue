@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4">
+  <div class="flex-1 flex items-center justify-center p-4">
     <Card class="w-full max-w-sm">
       <CardHeader>
         <CardTitle class="text-2xl">Réinitialiser le mot de passe</CardTitle>
