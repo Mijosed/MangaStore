@@ -2,25 +2,33 @@
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
-  compatibilityDate: '2025-05-15',
+  compatibilityDate: "2025-05-15",
   devtools: { enabled: true },
-  modules: ['@nuxt/image', 'shadcn-nuxt', '@nuxtjs/supabase', '@nuxt/icon'],
-  css: ['~/assets/css/tailwind.css'],
+  modules: ["@nuxt/image", "shadcn-nuxt", "@nuxtjs/supabase", "@nuxt/icon"],
+  css: ["~/assets/css/tailwind.css"],
   vite: {
     plugins: [tailwindcss()],
   },
-  supabase: {
-    redirect: false,
+  build: {
+    transpile: ["@supabase/ssr", "cookie"],
+  },
+
+  runtimeConfig: {
+    public: {
+      supabase: {
+        redirect: false,
+      },
+    },
   },
   shadcn: {
     /**
      * Prefix for all the imported component
      */
-    prefix: '',
+    prefix: "",
     /**
      * Directory that the component lives in.
      * @default "./components/ui"
      */
-    componentDir: './components/ui'
+    componentDir: "./components/ui",
   },
-})
+});
