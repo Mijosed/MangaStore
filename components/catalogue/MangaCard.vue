@@ -25,9 +25,9 @@ defineProps({
         <h3 class="font-semibold truncate">{{ manga.title }}</h3>
         <p class="text-sm text-gray-500">{{ manga.author }}</p>
       </div>
-      <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4 justify-between">
         <span class="font-bold text-lg">{{ manga.price }}€</span>
-        <Button size="sm" variant="secondary">
+        <Button size="sm" variant="secondary" class="cursor-pointer">
           <Icon name="lucide:shopping-cart" class="w-4 h-4 mr-2" />
           Ajouter
         </Button>

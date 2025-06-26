@@ -6,17 +6,17 @@
       <h2 class="text-3xl font-semibold mb-10 text-center">Nos catégories populaires</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <CategoryCard
-          img="/images/images.jpg"
+          img="/images/shonen.jpeg"
           title="Shonen"
           description="Action, aventure, dépassement de soi"
         />
         <CategoryCard
-          img="/images/images.jpg"
+          img="/images/seinen.jpg"
           title="Seinen"
           description="Histoires matures et psychologiques"
         />
         <CategoryCard
-          img="/images/images.jpg"
+          img="/images/shojo.jpg"
           title="Shojo"
           description="Romance, émotions et vie scolaire"
         />
