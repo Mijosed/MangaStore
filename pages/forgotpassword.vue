@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 flex items-center justify-center p-4">
+  <div class="flex-1 flex items-center justify-center p-10">
     <Card class="w-full max-w-sm">
       <CardHeader>
         <CardTitle class="text-2xl">Mot de passe oublié</CardTitle>
@@ -19,7 +19,7 @@
               required
             />
           </div>
-          <Button type="submit" class="w-full bg-[#457891]">Envoyer le lien</Button>
+          <Button type="submit" class="w-full bg-red-500 hover:bg-red-600 cursor-pointer">Envoyer le lien</Button>
           <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
           <p v-if="successMsg" class="text-sm text-green-600">{{ successMsg }}</p>
         </form>

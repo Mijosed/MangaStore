@@ -51,7 +51,7 @@ const logout = async () => {
         <!-- Menu utilisateur -->
         <template v-if="user">
           <NavigationMenuItem>
-            <NavigationMenuTrigger class="text-gray-200 hover:text-white">
+            <NavigationMenuTrigger class="text-gray-200 hover:text-white bg-transparent">
               <Avatar>
                 <AvatarImage :src="user.avatar_url || ''" />
                 <AvatarFallback>{{ user.email?.[0]?.toUpperCase() || '?' }}</AvatarFallback>
@@ -75,18 +75,18 @@ const logout = async () => {
         <template v-else>
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <div class="text-gray-200 hover:text-white transition-colors">
+              <div class="text-gray-200 hover:text-white cursor-pointer transition-colors">
                 <Icon name="lucide:user" class="w-5 h-5" />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent class="w-48 bg-neutral-900 border-neutral-800">
+            <DropdownMenuContent class="w-48 mt-2 bg-neutral-900 border-neutral-800">
               <DropdownMenuItem>
-                <NuxtLink to="/login" class="w-full text-gray-200 hover:text-white">
+                <NuxtLink to="/login" class="w-full text-gray-200 hover:text-gray-950">
                   Connexion
                 </NuxtLink>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <NuxtLink to="/register" class="w-full text-gray-200 hover:text-white">
+                <NuxtLink to="/register" class="w-full text-gray-200 hover:text-gray-950">
                   Inscription
                 </NuxtLink>
               </DropdownMenuItem>
