@@ -35,7 +35,7 @@ const login = async () => {
 </script>
 
 <template>
-  <div class="flex-1 flex items-center justify-center p-4">
+  <div class="flex-1 flex items-center justify-center p-10">
     <Card class="w-full max-w-sm">
       <CardHeader>
         <CardTitle class="text-2xl">Connexion</CardTitle>
