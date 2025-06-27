@@ -18,10 +18,22 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '~/composables/useAuth'
+import { useCartStore } from '~/stores/cart'
 import { useRouter } from 'vue-router'
 
 const { user, signOut } = useAuth()
+const cartStore = useCartStore()
 const router = useRouter()
+
+onMounted(() => {
+  console.log('HeaderNav: Initialisation du panier...')
+  cartStore.loadFromLocalStorage()
+  console.log('HeaderNav: Panier chargé, totalItems:', cartStore.totalItems)
+})
+
+watch(() => cartStore.totalItems, (newTotal) => {
+  console.log('HeaderNav: Total d\'articles mis à jour:', newTotal)
+})
 
 const logout = async () => {
   await signOut()
@@ -44,7 +56,12 @@ const logout = async () => {
         <NavigationMenuItem>
           <NuxtLink to="/cart" class="text-gray-200 hover:text-white transition-colors relative">
             <Icon name="lucide:shopping-cart" class="w-5 h-5" />
-            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">0</span>
+            <span 
+              v-if="cartStore.totalItems > 0"
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium"
+            >
+              {{ cartStore.totalItems > 99 ? '99+' : cartStore.totalItems }}
+            </span>
           </NuxtLink>
         </NavigationMenuItem>
         

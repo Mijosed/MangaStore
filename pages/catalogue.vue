@@ -105,6 +105,7 @@
 
         <!-- Grille ou liste de mangas -->
         <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        
           <MangaCard
             v-for="manga in paginatedMangas"
             :key="manga.id"
