@@ -1,13 +1,35 @@
 <script setup>
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useCartStore } from '~/stores/cart'
 
-defineProps({
+const cartStore = useCartStore()
+
+const props = defineProps({
   manga: {
     type: Object,
     required: true
   }
 })
+
+const isAdding = ref(false)
+
+const addToCart = async () => {
+  isAdding.value = true
+  
+  cartStore.addItem({
+    id: props.manga.id,
+    title: props.manga.title,
+    author: props.manga.author,
+    price: props.manga.price,
+    cover: props.manga.cover,
+    slug: props.manga.slug
+  })
+  
+  // Feedback visuel
+  await new Promise(resolve => setTimeout(resolve, 300))
+  isAdding.value = false
+}
 </script>
 
 <template>
@@ -27,9 +49,19 @@ defineProps({
       </div>
       <div class="flex items-center gap-4 justify-between">
         <span class="font-bold text-lg">{{ manga.price }}€</span>
-        <Button size="sm" variant="secondary" class="cursor-pointer">
-          <Icon name="lucide:shopping-cart" class="w-4 h-4 mr-2" />
-          Ajouter
+        <Button 
+          size="sm" 
+          variant="secondary" 
+          class="cursor-pointer transition-all duration-200" 
+          :class="{ 'bg-green-500 text-white': isAdding }"
+          @click="addToCart"
+          :disabled="isAdding"
+        >
+          <Icon 
+            :name="isAdding ? 'lucide:check' : 'lucide:shopping-cart'" 
+            class="w-4 h-4 mr-2" 
+          />
+          {{ isAdding ? 'Ajouté !' : 'Ajouter' }}
         </Button>
       </div>
     </CardFooter>

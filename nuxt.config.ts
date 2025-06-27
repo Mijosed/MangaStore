@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/image", "shadcn-nuxt", "@nuxtjs/supabase", "@nuxt/icon"],
+  modules: ["@nuxt/image", "shadcn-nuxt", "@nuxtjs/supabase", "@nuxt/icon", "@pinia/nuxt"],
   css: ["~/assets/css/tailwind.css"],
   vite: {
     plugins: [tailwindcss()],
@@ -18,6 +18,9 @@ export default defineNuxtConfig({
       supabase: {
         redirect: false,
       },
+      stripe: {
+        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+      }
     },
   },
   shadcn: {
