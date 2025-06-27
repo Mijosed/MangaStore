@@ -1,9 +1,11 @@
 <script setup>
 import { useAuth } from '~/composables/useAuth'
+import { useCartStore } from '~/stores/cart'
 import { useRouter } from 'vue-router'
 import { onMounted, onUnmounted, watch } from 'vue'
 
 const { user, signOut } = useAuth()
+const cartStore = useCartStore()
 const router = useRouter()
 const showMenu = ref(false)
 const showMobileMenu = ref(false)
@@ -55,6 +57,7 @@ const handleSearchKeydown = (event) => {
 }
 
 onMounted(() => {
+  cartStore.loadFromLocalStorage()
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -106,8 +109,12 @@ onUnmounted(() => {
           class="flex items-center gap-1 hover:text-bleu p-2 rounded-full hover:bg-gray-200 transition-colors relative"
         >
           <Icon name="lucide:shopping-cart" size="26" class="text-gray-600" />
-          <!-- Badge pour le nombre d'articles (optionnel) -->
-          <!-- <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span> -->
+          <span 
+            v-if="cartStore.totalItems > 0"
+            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
+          >
+            {{ cartStore.totalItems > 99 ? '99+' : cartStore.totalItems }}
+          </span>
         </NuxtLink>
 
         <!-- Menu utilisateur -->
@@ -230,11 +237,19 @@ onUnmounted(() => {
         <!-- Lien panier -->
         <NuxtLink 
           to="/cart" 
-          class="px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-bleu flex items-center"
+          class="px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-bleu flex items-center justify-between"
           @click="closeMobileMenu"
         >
-          <Icon name="lucide:shopping-cart" class="w-4 h-4 inline mr-2" />
-          Mon panier
+          <div class="flex items-center">
+            <Icon name="lucide:shopping-cart" class="w-4 h-4 inline mr-2" />
+            Mon panier
+          </div>
+          <span 
+            v-if="cartStore.totalItems > 0"
+            class="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
+          >
+            {{ cartStore.totalItems > 99 ? '99+' : cartStore.totalItems }}
+          </span>
         </NuxtLink>
 
         <!-- Séparateur -->

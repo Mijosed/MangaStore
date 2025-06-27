@@ -5,3 +5,7 @@
     </NuxtLayout>
   </div>
 </template>
+
+<script setup>
+useCartInit()
+</script>
