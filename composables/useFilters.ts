@@ -31,7 +31,8 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
   }
 
   const filteredMangas = computed(() => {
-    return mangas.value.filter(manga => {
+    // Filtrage
+    let result = mangas.value.filter(manga => {
       // Filtre par catégorie
       const matchesCategory = selectedCategories.value.length === 0 || 
                             selectedCategories.value.includes(manga.category.name)
@@ -50,7 +51,30 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
 
       return matchesCategory && matchesGenre && matchesSearch
     })
+
+    // Tri
+    result = [...result].sort((a, b) => {
+      switch (sortOption.value) {
+        case 'title':
+          return a.title.localeCompare(b.title)
+        case 'price-asc':
+          return a.price - b.price
+        case 'price-desc':
+          return b.price - a.price
+        case 'popularity':
+          // Pour la popularité, on utilise la note moyenne
+          return (b.average_rating || 0) - (a.average_rating || 0)
+        default:
+          return 0
+      }
+    })
+
+    return result
   })
+
+  const setSortOption = (option: SortOption): void => {
+    sortOption.value = option
+  }
 
   return {
     viewMode,
@@ -60,6 +84,7 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
     searchQuery,
     toggleCategory,
     toggleGenre,
+    setSortOption,
     filteredMangas
   }
 }

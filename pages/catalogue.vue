@@ -7,6 +7,7 @@ import CatalogueHeader from '~/components/catalogue/CatalogueHeader.vue'
 import CataloguePagination from '~/components/catalogue/CataloguePagination.vue'
 import { useCatalogue } from '~/composables/useCatalogue'
 import { useFilters } from '~/composables/useFilters'
+import type { SortOption } from '~/composables/useFilters'
 import { usePagination } from '~/composables/usePagination'
 
 // Initialisation des composables
@@ -19,6 +20,7 @@ const {
   searchQuery, 
   toggleCategory, 
   toggleGenre,
+  setSortOption,
   filteredMangas 
 } = useFilters(mangas)
 
@@ -40,9 +42,9 @@ const handleClearSearch = async () => {
   currentPage.value = 1
 }
 
-const handleSort = async (value: string) => {
-  sortOption.value = value as any // TODO: Corriger le type
-  await fetchMangas(value)
+const handleSort = (value: SortOption) => {
+  setSortOption(value);
+  currentPage.value = 1;
 }
 
 const handleToggleCategory = (category: string) => {
@@ -93,8 +95,8 @@ onMounted(async () => {
         <!-- En-tête avec recherche et options -->
         <CatalogueHeader
           v-model:view-mode="viewMode"
+          v-model:sort-option="sortOption"
           :search-query="searchQuery"
-          :sort-option="sortOption"
           :total-results="filteredMangas.length"
           @search="handleSearch"
           @clear="handleClearSearch"

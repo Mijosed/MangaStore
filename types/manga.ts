@@ -8,6 +8,14 @@ export interface Genre {
   name: string
 }
 
+export interface Review {
+  id: string
+  rating: number
+  content: string
+  user_id: string
+  created_at: string
+}
+
 export interface Manga {
   id: string
   title: string
@@ -25,6 +33,7 @@ export interface Manga {
   release_date?: string
   rating?: number
   average_rating?: number
+  reviews?: Review[]
   slug: string
   format?: string
   pages?: number
