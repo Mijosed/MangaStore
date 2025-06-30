@@ -1,9 +1,26 @@
+
+<script setup>
+import { ref } from 'vue'
+import { Button } from '@/components/ui/button'
+
+defineProps({
+  manga: {
+    type: Object,
+    required: true
+  }
+})
+
+const quantity = ref(1)
+
+defineEmits(['addToCart', 'incrementQuantity', 'decrementQuantity'])
+</script>
+
 <template>
   <div class="grid md:grid-cols-2 gap-8">
     <!-- Image Column -->
     <div>
       <img
-        :src="manga.cover"
+        :src="manga.cover_url"
         :alt="manga.title"
         class="w-full rounded-lg shadow-lg object-cover"
       />
@@ -56,14 +73,14 @@
       <div class="mb-8">
         <div class="flex gap-2 flex-wrap mb-4">
           <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-            {{ manga.category }}
+            {{ manga.category.name }}
           </span>
           <span
-            v-for="genre in manga.genres"
-            :key="genre"
+            v-for="mg in manga.manga_genres"
+            :key="mg.genre.id"
             class="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-sm"
           >
-            {{ genre }}
+            {{ mg.genre.name }}
           </span>
         </div>
       </div>
@@ -71,26 +88,3 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { Button } from '@/components/ui/button'
-
-interface Props {
-  manga: {
-    title: string
-    author: string
-    cover: string
-    price: number
-    stock: number
-    category: string
-    genres: string[]
-  }
-  quantity: number
-}
-
-defineProps<Props>()
-defineEmits<{
-  (e: 'incrementQuantity'): void
-  (e: 'decrementQuantity'): void
-  (e: 'addToCart'): void
-}>()
-</script>

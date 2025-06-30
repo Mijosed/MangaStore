@@ -1,10 +1,11 @@
 import { ref } from 'vue'
 import { useSupabaseClient } from '#imports'
+import type { Manga } from '~/types/manga'
 
 export const useManga = () => {
-  const manga = ref(null)
+  const manga = ref<Manga | null>(null)
   const loading = ref(true)
-  const error = ref(null)
+  const error = ref<string | null>(null)
   const supabase = useSupabaseClient()
 
   const fetchManga = async (slug: string) => {
@@ -54,34 +55,38 @@ export const useManga = () => {
     }
   }
 
-  const transformMangaData = (mangaData) => ({
+  const transformMangaData = (mangaData: any): Manga => ({
     id: mangaData.id,
     title: mangaData.title,
+    slug: mangaData.slug || `${mangaData.id}-${mangaData.title.toLowerCase().replace(/\s+/g, '-')}`,
+    description: mangaData.description || 'Aucune description disponible',
     author: mangaData.author,
-    cover: mangaData.cover_url || mangaData.image_url,
+    cover_url: mangaData.cover_url || mangaData.image_url,
+    image_url: mangaData.image_url,
     price: mangaData.price,
     rating: mangaData.average_rating || 0,
     stock: mangaData.stock || 0,
-    releaseDate: mangaData.release_date,
+    release_date: mangaData.release_date,
     publisher: mangaData.publisher,
-    category: mangaData.category?.name || 'Non catégorisé',
-    genres: (mangaData.manga_genres || [])
-      .map(mg => mg.genre?.name)
-      .filter(Boolean),
-    description: mangaData.description || 'Aucune description disponible',
-    specifications: {
-      format: mangaData.format || 'Non spécifié',
-      pages: mangaData.pages || 0,
-      language: mangaData.language || 'Non spécifié',
-      isbn: mangaData.isbn || 'Non spécifié'
+    average_rating: mangaData.average_rating || 0,
+    created_at: mangaData.created_at,
+    updated_at: mangaData.updated_at,
+    category: {
+      id: mangaData.category?.id || '0',
+      name: mangaData.category?.name || 'Non catégorisé'
     },
-    reviews: (mangaData.reviews || []).map(review => ({
+    manga_genres: (mangaData.manga_genres || []).map((mg: any) => ({
+      genre: {
+        id: mg.genre?.id,
+        name: mg.genre?.name
+      }
+    })),
+    reviews: (mangaData.reviews || []).map((review: any) => ({
       id: review.id,
-      author: 'Utilisateur #' + review.user_id.substring(0, 8),
+      user_id: review.user_id,
       rating: review.rating || 0,
       comment: review.comment || '',
-      date: review.created_at,
-      avatar: '/default-avatar.png'
+      created_at: review.created_at
     }))
   })
 

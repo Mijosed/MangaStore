@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import MangaCard from '~/components/catalogue/MangaCard.vue'
 import MangaListItem from '~/components/catalogue/MangaListItem.vue'
@@ -30,33 +30,33 @@ const {
 } = usePagination(filteredMangas)
 
 // Handlers
-const handleSearch = async (query) => {
+const handleSearch = async (query: string) => {
   searchQuery.value = query
   currentPage.value = 1
-  await fetchMangas()
 }
 
 const handleClearSearch = async () => {
   searchQuery.value = ''
   currentPage.value = 1
-  await fetchMangas()
 }
 
-const handleSort = async (value) => {
-  sortOption.value = value
+const handleSort = async (value: string) => {
+  sortOption.value = value as any // TODO: Corriger le type
   await fetchMangas(value)
 }
 
-const handleToggleCategory = async (category) => {
+const handleToggleCategory = (category: string) => {
+  console.log('2. handleToggleCategory appelé avec:', category)
   toggleCategory(category)
+  console.log('3. selectedCategories après toggle:', selectedCategories.value)
   currentPage.value = 1
-  await fetchMangas()
 }
 
-const handleToggleGenre = async (genre) => {
+const handleToggleGenre = (genre: string) => {
+  console.log('2. handleToggleGenre appelé avec:', genre)
   toggleGenre(genre)
+  console.log('3. selectedGenres après toggle:', selectedGenres.value)
   currentPage.value = 1
-  await fetchMangas()
 }
 
 // Chargement initial des données

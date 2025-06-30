@@ -1,6 +1,12 @@
 import { ref } from 'vue'
 import { useSupabaseClient } from '#imports'
 
+interface CartItem {
+  user_id: string
+  manga_id: string
+  quantity: number
+}
+
 export const useCart = () => {
   const quantity = ref(1)
   const supabase = useSupabaseClient()

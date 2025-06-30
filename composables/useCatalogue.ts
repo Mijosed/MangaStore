@@ -1,33 +1,31 @@
 import { ref, computed } from 'vue'
 import { useSupabaseClient } from '#imports'
+import type { Manga, Category, Genre } from '~/types/manga'
 
-
-export interface Category {
-  id: string
-  name: string
-}
-
-export interface Genre {
-  id: string
-  name: string
-}
-
-export interface Manga {
+interface MangaResponse {
   id: string
   title: string
-  author: string
+  description: string
   price: number
-  rating: number
+  stock: number
   cover_url: string
   image_url?: string
-  category: string
-  genres: string[]
-  slug: string
-  stock: number
-  average_rating: number
-  description?: string
+  category: {
+    id: string
+    name: string
+  }
+  manga_genres: Array<{
+    genre: {
+      id: string
+      name: string
+    }
+  }>
+  author?: string
   publisher?: string
   release_date?: string
+  rating?: number
+  average_rating?: number
+  slug: string
   format?: string
   pages?: number
   language?: string
@@ -87,7 +85,7 @@ export const useCatalogue = () => {
     language?: string
     isbn?: string
     slug: string
-    category: {
+    categories: {
       id: string
       name: string
     }
@@ -106,7 +104,7 @@ export const useCatalogue = () => {
       .from('mangas')
       .select(`
         *,
-        category:categories!inner(
+        categories!inner(
           id,
           name
         ),
@@ -140,12 +138,17 @@ export const useCatalogue = () => {
       return
     }
     
-    mangas.value = data.map((manga: MangaResponse) => {
-      const { manga_genres, ...rest } = manga
+    mangas.value = data.map((manga: any) => {
+      const { categories, ...rest } = manga
       return {
         ...rest,
-        category: manga.category?.name || 'Non catégorisé',
-        genres: manga.manga_genres.map((mg: { genre: { name: string } }) => mg.genre.name),
+        category: {
+          id: categories?.id || '0',
+          name: categories?.name || 'Non catégorisé'
+        },
+        manga_genres: manga.manga_genres.map((mg: { genre: Genre }) => ({
+          genre: mg.genre
+        })),
         slug: manga.slug || `${manga.id}-${manga.title.toLowerCase().replace(/\s+/g, '-')}`
       } as Manga
     })

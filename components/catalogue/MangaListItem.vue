@@ -12,7 +12,7 @@ defineProps({
 <template>
   <div class="flex gap-4 p-4 bg-white rounded-lg border">
     <NuxtLink :to="`/manga/${manga.slug}`" class="flex-shrink-0">
-      <img :src="manga.cover" :alt="manga.title" class="w-24 h-32 object-cover rounded" />
+      <img :src="manga.cover_url" :alt="manga.title" class="w-24 h-32 object-cover rounded" />
     </NuxtLink>
     <div class="flex-1 flex flex-col justify-between">
       <div>

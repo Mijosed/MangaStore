@@ -1,3 +1,24 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps<{
+  currentPage: number
+  totalPages: number
+  visiblePages: number[]
+}>()
+
+defineEmits<{
+  (e: 'update:currentPage', page: number): void
+}>()
+
+const buttonClass = (page: number) => [
+  'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+  props.currentPage === page
+    ? 'bg-red-600 text-white border border-red-600'
+    : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+]
+</script>
+
 <template>
   <nav v-if="totalPages > 1" class="flex justify-center mt-8">
     <div class="flex items-center space-x-2" aria-label="Pagination">
@@ -76,23 +97,3 @@
   </nav>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
-
-const props = defineProps<{
-  currentPage: number
-  totalPages: number
-  visiblePages: number[]
-}>()
-
-defineEmits<{
-  (e: 'update:currentPage', page: number): void
-}>()
-
-const buttonClass = (page: number) => [
-  'px-3 py-2 text-sm font-medium rounded-md transition-colors',
-  props.currentPage === page
-    ? 'bg-red-600 text-white border border-red-600'
-    : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
-]
-</script>

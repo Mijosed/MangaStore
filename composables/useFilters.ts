@@ -1,17 +1,6 @@
 import { ref, computed } from 'vue'
 import type { Ref } from 'vue'
-
-export interface Manga {
-  id: string
-  title: string
-  author: string
-  category: string
-  genres: string[]
-  price: number
-  rating: number
-  stock: number
-  slug: string
-}
+import type { Manga } from '~/types/manga'
 
 export type ViewMode = 'grid' | 'list'
 export type SortOption = 'popularity' | 'price-asc' | 'price-desc' | 'title'
@@ -43,13 +32,22 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
 
   const filteredMangas = computed(() => {
     return mangas.value.filter(manga => {
+      // Filtre par catégorie
       const matchesCategory = selectedCategories.value.length === 0 || 
-                            selectedCategories.value.includes(manga.category)
+                            selectedCategories.value.includes(manga.category.name)
+
+      // Filtre par genre (vérifie si au moins un des genres sélectionnés correspond)
       const matchesGenre = selectedGenres.value.length === 0 || 
-                          manga.genres.some(genre => selectedGenres.value.includes(genre))
+                          selectedGenres.value.some(selectedGenre => {
+                            return manga.manga_genres.some(mg => mg.genre.name === selectedGenre)
+                          })
+
+      // Filtre par recherche
+      const searchLower = searchQuery.value.toLowerCase()
       const matchesSearch = searchQuery.value === '' ||
-                          manga.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                          manga.author.toLowerCase().includes(searchQuery.value.toLowerCase())
+                          manga.title.toLowerCase().includes(searchLower) ||
+                          (manga.author?.toLowerCase().includes(searchLower) ?? false)
+
       return matchesCategory && matchesGenre && matchesSearch
     })
   })
