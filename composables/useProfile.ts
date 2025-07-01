@@ -25,7 +25,10 @@ export const useProfile = () => {
 
   const fetchProfile = async () => {
     console.log('Fetching profile for user:', user.value?.id)
-    if (!user.value) return null
+    if (!user.value) {
+      profile.value = null
+      return null
+    }
 
     loading.value = true
     error.value = null
@@ -35,27 +38,20 @@ export const useProfile = () => {
       
       // Récupérer les informations de l'utilisateur via la fonction RPC get_users
       // qui inclut déjà le rôle correctement joint avec la table roles
-      const { data: userData, error: userError } = await supabase
+      const { data: users, error: userError } = await supabase
         .rpc('get_users')
 
-      if (userError) {
-        console.error('Error fetching user data:', userError)
-        throw userError
-      }
+      if (userError) throw userError
 
-      console.log('User data:', userData)
-
-      if (userData && userData.length > 0) {
-        const currentUser = userData.find((u: GetUsersResponse) => u.id === user.value?.id)
-        if (currentUser) {
-          profile.value = {
-            id: currentUser.id,
-            email: currentUser.email,
-            role: currentUser.role, // Utilise directement le rôle retourné par get_users
-            created_at: currentUser.created_at
-          }
-          console.log('Updated profile:', profile.value)
+      const currentUser = users?.find((u: GetUsersResponse) => u.id === user.value?.id)
+      if (currentUser) {
+        profile.value = {
+          id: currentUser.id,
+          email: currentUser.email,
+          role: currentUser.role, // Utilise directement le rôle retourné par get_users
+          created_at: currentUser.created_at
         }
+        console.log('Updated profile:', profile.value)
       }
 
       return profile.value
@@ -94,14 +90,13 @@ interface ProfileUpdateData {
 
 // Update role function
 const updateRole = async (userId: string, role: UserRole) => {
-  const { error } = await useSupabaseClient()
+  const supabase = useSupabaseClient()
+  const { error } = await supabase
     .from('roles')
-    .upsert({
-      user_id: userId,
-      role: role
-    }, {
-      onConflict: 'user_id'
-    })
+    .upsert(
+      { user_id: userId, role },
+      { onConflict: 'user_id' }
+    )
 
   if (error) throw error
 }

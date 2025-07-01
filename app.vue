@@ -6,6 +6,7 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <Sonner position="top-right" />
   </div>
 </template>
 
