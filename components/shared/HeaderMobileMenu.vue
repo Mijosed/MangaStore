@@ -15,7 +15,7 @@
             <NuxtLink to="/cart">Mon panier</NuxtLink>
             <hr />
             <template v-if="user">
-              <NuxtLink to="/account">Mon profil</NuxtLink>
+              <NuxtLink to="/#">Mon profil</NuxtLink>
               <button @click="logout" class="text-red-600 text-left">Se déconnecter</button>
             </template>
             <template v-else>

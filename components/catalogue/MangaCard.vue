@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '~/stores/cart'
@@ -20,9 +21,9 @@ const addToCart = async () => {
   cartStore.addItem({
     id: props.manga.id,
     title: props.manga.title,
-    author: props.manga.author,
+    author: props.manga.author || '',
     price: props.manga.price,
-    cover: props.manga.cover,
+    cover: props.manga.cover_url,
     slug: props.manga.slug
   })
   
@@ -36,7 +37,7 @@ const addToCart = async () => {
   <Card class="overflow-hidden group">
     <CardContent class="p-0 relative">
       <NuxtLink :to="`/manga/${manga.slug}`">
-        <img :src="manga.cover" :alt="manga.title" class="w-full aspect-[3/4] object-cover transition-transform duration-300 group-hover:scale-105" />
+        <img :src="manga.cover_url" :alt="manga.title" class="w-full aspect-[3/4] object-cover transition-transform duration-300 group-hover:scale-105" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
           <p class="text-white text-sm line-clamp-2">{{ manga.description }}</p>
         </div>
