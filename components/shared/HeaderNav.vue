@@ -2,10 +2,9 @@
 import {
   NavigationMenu,
   NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuTrigger,
-  NavigationMenuContent
+  NavigationMenuItem
 } from '@/components/ui/navigation-menu'
+import { Button } from '@/components/ui/button'
 import {
   Avatar,
   AvatarImage,
@@ -15,20 +14,31 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '~/composables/useAuth'
+import { useProfile } from '~/composables/useProfile'
 import { useCartStore } from '~/stores/cart'
 import { useRouter } from 'vue-router'
 
 const { user, signOut } = useAuth()
+const { profile, fetchProfile } = useProfile()
 const cartStore = useCartStore()
 const router = useRouter()
 
+// Watch user changes to update profile
+watch(() => user.value?.id, async (newId) => {
+  if (newId) {
+    console.log('HeaderNav: User changed, fetching profile...')
+    await fetchProfile()
+  }
+}, { immediate: true })
+
 onMounted(() => {
-  console.log('HeaderNav: Initialisation du panier...')
+  console.log('HeaderNav: Initialisation...')
   cartStore.loadFromLocalStorage()
-  console.log('HeaderNav: Panier chargé, totalItems:', cartStore.totalItems)
 })
 
 watch(() => cartStore.totalItems, (newTotal) => {
@@ -68,47 +78,71 @@ const logout = async () => {
         <!-- Menu utilisateur -->
         <template v-if="user">
           <NavigationMenuItem>
-            <NavigationMenuTrigger class="text-gray-200 hover:text-white bg-transparent">
-              <Avatar>
-                <AvatarImage :src="user.avatar_url || ''" />
-                <AvatarFallback>{{ user.email?.[0]?.toUpperCase() || '?' }}</AvatarFallback>
-              </Avatar>
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div class="p-4 w-48 bg-neutral-900">
-                <div class="text-xs text-gray-400 mb-2">{{ user.email }}</div>
-                <div class="flex flex-col gap-2">
-                  <NuxtLink to="/account" class="text-gray-200 hover:text-white transition-colors">Mon profil</NuxtLink>
-                  <button @click="logout" class="text-red-400 text-left hover:text-red-300 transition-colors">
-                    Se déconnecter
-                  </button>
-                </div>
-              </div>
-            </NavigationMenuContent>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" class="relative h-8 w-8 rounded-full">
+                  <Avatar class="h-8 w-8">
+                    <AvatarImage :src="user.avatar_url || ''" alt="Photo de profil" />
+                    <AvatarFallback>{{ user.email?.[0]?.toUpperCase() || '?' }}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent class="w-56" align="end">
+                <DropdownMenuLabel class="font-normal">
+                  <div class="flex flex-col space-y-1">
+                    <p class="text-sm font-medium text-gray-200">{{ user.email }}</p>
+                    <p class="text-xs text-gray-400 capitalize">{{ profile?.role || 'utilisateur' }}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <NuxtLink to="/account" class="cursor-pointer flex items-center text-gray-200 hover:text-white">
+                    <Icon name="lucide:user" class="w-4 h-4 mr-2" />
+                    Mon profil
+                  </NuxtLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <NuxtLink to="/account/orders" class="cursor-pointer flex items-center text-gray-200 hover:text-white">
+                    <Icon name="lucide:package" class="w-4 h-4 mr-2" />
+                    Mes commandes
+                  </NuxtLink>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem @click="logout" class="cursor-pointer text-red-400 hover:text-red-300">
+                  <Icon name="lucide:log-out" class="w-4 h-4 mr-2" />
+                  Se déconnecter
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </NavigationMenuItem>
         </template>
         
         <!-- Menu connexion/inscription pour les utilisateurs non connectés -->
         <template v-else>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <div class="text-gray-200 hover:text-white cursor-pointer transition-colors">
-                <Icon name="lucide:user" class="w-5 h-5" />
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent class="w-48 mt-2 bg-neutral-900 border-neutral-800">
-              <DropdownMenuItem>
-                <NuxtLink to="/login" class="w-full text-gray-200 hover:text-gray-950">
-                  Connexion
-                </NuxtLink>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <NuxtLink to="/register" class="w-full text-gray-200 hover:text-gray-950">
-                  Inscription
-                </NuxtLink>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NavigationMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" class="text-gray-200 hover:text-white">
+                  <Icon name="lucide:user" class="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent class="w-56" align="end">
+                <DropdownMenuItem asChild>
+                  <NuxtLink to="/login" class="cursor-pointer flex items-center text-gray-200 hover:text-white">
+                    <Icon name="lucide:log-in" class="w-4 h-4 mr-2" />
+                    Connexion
+                  </NuxtLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <NuxtLink to="/register" class="cursor-pointer flex items-center text-gray-200 hover:text-white">
+                    <Icon name="lucide:user-plus" class="w-4 h-4 mr-2" />
+                    Inscription
+                  </NuxtLink>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </NavigationMenuItem>
         </template>
       </NavigationMenuList>
     </NavigationMenu>

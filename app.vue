@@ -1,3 +1,6 @@
+<script setup>
+  useCartInit()
+</script>
 <template>
   <div>
     <NuxtLayout>
@@ -6,6 +9,3 @@
   </div>
 </template>
 
-<script setup>
-useCartInit()
-</script>
