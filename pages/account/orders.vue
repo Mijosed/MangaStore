@@ -1,100 +1,80 @@
 <template>
-  <div class="bg-white rounded-lg shadow-md p-6">
-    <h1 class="text-3xl font-bold mb-8">Mes commandes</h1>
-    
-    <!-- Liste des commandes -->
-    <div v-if="orders.length > 0">
-      <div class="space-y-6">
-        <div v-for="order in orders" :key="order.id" class="border rounded-lg p-4">
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <p class="text-sm text-gray-500">Commande #{{ order.id }}</p>
-              <p class="text-sm text-gray-500">{{ formatDate(order.created_at) }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-lg font-semibold">{{ formatPrice(order.total) }} €</p>
-              <p :class="[
-                'text-sm font-medium capitalize px-2 py-1 rounded-full inline-block',
-                {
-                  'bg-green-100 text-green-800': order.status === 'completed',
-                  'bg-blue-100 text-blue-800': order.status === 'processing',
-                  'bg-yellow-100 text-yellow-800': order.status === 'pending'
-                }
-              ]">
-                {{ formatStatus(order.status) }}
-              </p>
-            </div>
-          </div>
-          
-          <div class="space-y-2">
-            <div v-for="item in order.items" :key="item.id" class="flex gap-4 py-2 border-t">
-              <img :src="item.manga.cover_url" :alt="item.manga.title" class="w-16 h-20 object-cover rounded">
-              <div>
-                <h3 class="font-medium">{{ item.manga.title }}</h3>
-                <p class="text-sm text-gray-600">Quantité : {{ item.quantity }}</p>
-                <p class="text-sm font-medium">{{ formatPrice(item.price) }} €</p>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div>
+    <h1 class="text-2xl font-bold mb-6">Mes commandes</h1>
+
+    <div v-if="loading" class="flex justify-center items-center h-64">
+      <p class="text-gray-500">Chargement des commandes...</p>
+    </div>
+
+    <div v-else-if="orders.length === 0" class="text-center py-12">
+      <Icon name="lucide:package" class="mx-auto h-12 w-12 text-gray-400" />
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">Aucune commande</h3>
+      <p class="mt-1 text-sm text-gray-500">Vous n'avez pas encore passé de commande.</p>
+      <div class="mt-6">
+        <NuxtLink to="/catalogue">
+          <Button>
+            <Icon name="lucide:shopping-bag" class="w-4 h-4 mr-2" />
+            Parcourir le catalogue
+          </Button>
+        </NuxtLink>
       </div>
     </div>
 
-    <!-- Aucune commande -->
-    <div v-else class="text-center py-12">
-      <Icon name="lucide:package" class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-      <h3 class="text-lg font-medium text-gray-900 mb-1">Aucune commande</h3>
-      <p class="text-gray-500">Vous n'avez pas encore passé de commande.</p>
-      <NuxtLink 
-        to="/catalogue"
-        class="mt-4 inline-block text-bleu hover:underline"
-      >
-        Parcourir le catalogue
-      </NuxtLink>
+    <div v-else class="space-y-6">
+      <Card v-for="order in orders" :key="order.id" class="overflow-hidden">
+        <CardHeader>
+          <CardTitle class="flex justify-between">
+            <span>Commande #{{ order.id }}</span>
+            <span class="text-sm font-normal text-gray-500">
+              {{ new Date(order.created_at).toLocaleDateString('fr-FR') }}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="space-y-4">
+            <div v-for="item in order.items" :key="item.id" class="flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <img :src="item.manga.cover_url" :alt="item.manga.title" class="h-16 w-12 object-cover rounded-sm" />
+                <div>
+                  <p class="font-medium">{{ item.manga.title }}</p>
+                  <p class="text-sm text-gray-500">Quantité: {{ item.quantity }}</p>
+                </div>
+              </div>
+              <p class="font-medium">{{ (item.price * item.quantity).toFixed(2) }}€</p>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter class="bg-gray-50 dark:bg-gray-900">
+          <div class="flex justify-between w-full">
+            <span class="font-medium">Total</span>
+            <span class="font-medium">{{ order.total.toFixed(2) }}€</span>
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'account',
+  middleware: 'auth'
+})
+
 const orders = ref([])
-const loading = ref(false)
-const error = ref<string | null>(null)
+const loading = ref(true)
 
-// Format price
-const formatPrice = (price: number) => {
-  return price.toFixed(2)
-}
-
-// Format status
-const formatStatus = (status: string) => {
-  const statusMap: Record<string, string> = {
-    'pending': 'En attente',
-    'processing': 'En cours',
-    'completed': 'Terminée',
-    'cancelled': 'Annulée'
-  }
-  return statusMap[status] || status
-}
-
-// Format date
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-// Fetch orders
-const fetchOrders = async () => {
-  loading.value = true
-  error.value = null
-
+// Simuler le chargement des commandes
+// À remplacer par un vrai appel API
+onMounted(async () => {
   try {
-    const { data, error: err } = await useSupabaseClient()
+    const supabase = useSupabaseClient()
+    const { data, error } = await supabase
       .from('orders')
       .select(`
-        *,
+        id,
+        created_at,
+        total,
         items:order_items (
           id,
           quantity,
@@ -108,24 +88,12 @@ const fetchOrders = async () => {
       `)
       .order('created_at', { ascending: false })
 
-    if (err) throw err
-
+    if (error) throw error
     orders.value = data || []
-  } catch (err) {
-    console.error('Error fetching orders:', err)
-    error.value = "Erreur lors du chargement des commandes"
+  } catch (error) {
+    console.error('Error loading orders:', error)
   } finally {
     loading.value = false
   }
-}
-
-// Auth middleware
-definePageMeta({
-  middleware: 'auth'
-})
-
-// Load orders on mount
-onMounted(() => {
-  fetchOrders()
 })
 </script>
