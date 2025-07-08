@@ -4,7 +4,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const { user } = useAuth()
 
   // Allow public pages
-  const publicPages = ['/', '/login', '/register', '/forgot-password', '/reset-password']
+  const publicPages = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/catalogue']
   if (publicPages.includes(to.path)) {
     return
   }
@@ -12,5 +12,5 @@ export default defineNuxtRouteMiddleware((to) => {
   // Check auth for protected pages
   if (!user.value) {
     return navigateTo('/login')
-  }
+  } 
 })
