@@ -1,3 +1,4 @@
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
 export interface CartItem {
@@ -10,123 +11,152 @@ export interface CartItem {
   quantity: number
 }
 
-export const useCartStore = defineStore('cart', {
-  state: () => ({
-    items: [] as CartItem[],
-    isOpen: false
-  }),
+export const useCartStore = defineStore('cart', () => {
+  
+  const items = ref<CartItem[]>([])
+  const isOpen = ref(false)
 
-  getters: {
-    totalItems: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
-    
-    totalPrice: (state) => state.items.reduce((total, item) => total + (item.price * item.quantity), 0),
-    
-    formattedTotalPrice: (state) => {
-      const total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
-      return total.toFixed(2)
-    },
+  
+  const totalItems = computed(() =>
+    items.value.reduce((total, item) => total + item.quantity, 0)
+  )
 
-    isEmpty: (state) => state.items.length === 0
-  },
+  const totalPrice = computed(() =>
+    items.value.reduce((total, item) => total + item.price * item.quantity, 0)
+  )
 
-  actions: {
-    addItem(manga: Omit<CartItem, 'quantity'>) {
-      const existingItem = this.items.find(item => item.id === manga.id)
-      
-      if (existingItem) {
-        existingItem.quantity++
-        console.log('Quantité incrémentée pour:', manga.title, 'Nouvelle quantité:', existingItem.quantity)
+  const formattedTotalPrice = computed(() =>
+    totalPrice.value.toFixed(2)
+  )
+
+  const isEmpty = computed(() => items.value.length === 0)
+
+  // 👉 Actions
+  function addItem(manga: Omit<CartItem, 'quantity'>) {
+    const existingItem = items.value.find(item => item.id === manga.id)
+
+    if (existingItem) {
+      existingItem.quantity++
+      console.log('Quantité incrémentée pour:', manga.title, 'Nouvelle quantité:', existingItem.quantity)
+    } else {
+      items.value.push({ ...manga, quantity: 1 })
+      console.log('Nouvel article ajouté:', manga.title)
+    }
+
+    console.log('Total d\'articles dans le panier:', totalItems.value)
+    saveToLocalStorage()
+  }
+
+  function removeItem(itemId: number) {
+    const index = items.value.findIndex(item => item.id === itemId)
+    if (index > -1) {
+      items.value.splice(index, 1)
+      saveToLocalStorage()
+    }
+  }
+
+  function updateQuantity(itemId: number, quantity: number) {
+    const item = items.value.find(item => item.id === itemId)
+    if (item) {
+      if (quantity <= 0) {
+        removeItem(itemId)
       } else {
-        this.items.push({ ...manga, quantity: 1 })
-        console.log('Nouvel article ajouté:', manga.title)
+        item.quantity = quantity
+        saveToLocalStorage()
       }
-      
-      console.log('Total d\'articles dans le panier:', this.totalItems)
-      
-      // Sauvegarder dans localStorage
-      this.saveToLocalStorage()
-    },
+    }
+  }
 
-    removeItem(itemId: number) {
-      const index = this.items.findIndex(item => item.id === itemId)
-      if (index > -1) {
-        this.items.splice(index, 1)
-        this.saveToLocalStorage()
+  function incrementQuantity(itemId: number) {
+    const item = items.value.find(item => item.id === itemId)
+    if (item) {
+      item.quantity++
+      saveToLocalStorage()
+    }
+  }
+
+  function decrementQuantity(itemId: number) {
+    const item = items.value.find(item => item.id === itemId)
+    if (item) {
+      if (item.quantity > 1) {
+        item.quantity--
+        saveToLocalStorage()
+      } else {
+        removeItem(itemId)
       }
-    },
+    }
+  }
 
-    updateQuantity(itemId: number, quantity: number) {
-      const item = this.items.find(item => item.id === itemId)
-      if (item) {
-        if (quantity <= 0) {
-          this.removeItem(itemId)
-        } else {
-          item.quantity = quantity
-          this.saveToLocalStorage()
-        }
-      }
-    },
+  function clearCart() {
+    items.value = []
+    saveToLocalStorage()
+  }
+  
+  // Nouvelle fonction pour vider complètement le panier et supprimer du localStorage
+  function clearCartAndStorage() {
+    items.value = []
+    isOpen.value = false
+    if (process.client) {
+      localStorage.removeItem('mangastore-cart')
+    }
+  }
 
-    incrementQuantity(itemId: number) {
-      const item = this.items.find(item => item.id === itemId)
-      if (item) {
-        item.quantity++
-        this.saveToLocalStorage()
-      }
-    },
+  function toggleCart() {
+    isOpen.value = !isOpen.value
+  }
 
-    decrementQuantity(itemId: number) {
-      const item = this.items.find(item => item.id === itemId)
-      if (item) {
-        if (item.quantity > 1) {
-          item.quantity--
-          this.saveToLocalStorage()
-        } else {
-          this.removeItem(itemId)
-        }
-      }
-    },
+  function openCart() {
+    isOpen.value = true
+  }
 
-    clearCart() {
-      this.items = []
-      this.saveToLocalStorage()
-    },
+  function closeCart() {
+    isOpen.value = false
+  }
 
-    toggleCart() {
-      this.isOpen = !this.isOpen
-    },
+  
+  function saveToLocalStorage() {
+    if (process.client) {
+      localStorage.setItem('mangastore-cart', JSON.stringify({
+        items: items.value,
+        isOpen: isOpen.value
+      }))
+    }
+  }
 
-    openCart() {
-      this.isOpen = true
-    },
-
-    closeCart() {
-      this.isOpen = false
-    },
-
-    // Méthodes pour la persistance
-    saveToLocalStorage() {
-      if (process.client) {
-        localStorage.setItem('mangastore-cart', JSON.stringify({
-          items: this.items,
-          isOpen: this.isOpen
-        }))
-      }
-    },
-
-    loadFromLocalStorage() {
-      if (process.client) {
-        const saved = localStorage.getItem('mangastore-cart')
-        if (saved) {
-          try {
-            const data = JSON.parse(saved)
-            this.items = data.items || []
-            this.isOpen = data.isOpen || false
-          } catch (error) {
-            console.error('Erreur lors du chargement du panier:', error)
-          }
+  function loadFromLocalStorage() {
+    if (process.client) {
+      const saved = localStorage.getItem('mangastore-cart')
+      if (saved) {
+        try {
+          const data = JSON.parse(saved)
+          items.value = data.items || []
+          isOpen.value = data.isOpen || false
+        } catch (error) {
+          console.error('Erreur lors du chargement du panier:', error)
         }
       }
     }
   }
-}) 
+
+  
+  return {
+    items,
+    isOpen,
+    totalItems,
+    totalPrice,
+    formattedTotalPrice,
+    isEmpty,
+    addItem,
+    removeItem,
+    updateQuantity,
+    incrementQuantity,
+    decrementQuantity,
+    clearCart,
+    clearCartAndStorage,
+    toggleCart,
+    openCart,
+    closeCart,
+    saveToLocalStorage,
+    loadFromLocalStorage
+  }
+})

@@ -22,7 +22,7 @@ const buttonClass = (page: number) => [
 <template>
   <nav v-if="totalPages > 1" class="flex justify-center mt-8">
     <div class="flex items-center space-x-2" aria-label="Pagination">
-      <!-- Bouton Précédent -->
+     
       <button
         @click="$emit('update:currentPage', currentPage - 1)"
         :disabled="currentPage === 1"
@@ -34,7 +34,7 @@ const buttonClass = (page: number) => [
         Précédent
       </button>
 
-      <!-- Pages simples (≤ 7 pages) -->
+      
       <template v-if="totalPages <= 7">
         <button
           v-for="page in totalPages"
@@ -46,9 +46,9 @@ const buttonClass = (page: number) => [
         </button>
       </template>
 
-      <!-- Pagination avec ellipses (> 7 pages) -->
+      
       <template v-else>
-        <!-- Page 1 -->
+        
         <button
           @click="$emit('update:currentPage', 1)"
           :class="buttonClass(1)"
@@ -56,10 +56,10 @@ const buttonClass = (page: number) => [
           1
         </button>
 
-        <!-- Ellipse début -->
+        
         <span v-if="currentPage > 3" class="px-2 py-2 text-gray-500">...</span>
 
-        <!-- Pages autour de la page actuelle -->
+        
         <button
           v-for="page in visiblePages"
           :key="page"
@@ -69,10 +69,10 @@ const buttonClass = (page: number) => [
           {{ page }}
         </button>
 
-        <!-- Ellipse fin -->
+        
         <span v-if="currentPage < totalPages - 2" class="px-2 py-2 text-gray-500">...</span>
 
-        <!-- Dernière page -->
+        
         <button
           v-if="totalPages > 1"
           @click="$emit('update:currentPage', totalPages)"
@@ -82,7 +82,7 @@ const buttonClass = (page: number) => [
         </button>
       </template>
 
-      <!-- Bouton Suivant -->
+      
       <button
         @click="$emit('update:currentPage', currentPage + 1)"
         :disabled="currentPage === totalPages"

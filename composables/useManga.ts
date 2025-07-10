@@ -67,7 +67,8 @@ export const useManga = () => {
     rating: mangaData.average_rating || 0,
     stock: mangaData.stock || 0,
     release_date: mangaData.release_date,
-    publisher: mangaData.publisher,
+    releaseDate: mangaData.release_date, // Alias pour compatibility
+    publisher: mangaData.publisher || 'Éditeur non spécifié',
     average_rating: mangaData.average_rating || 0,
     created_at: mangaData.created_at,
     updated_at: mangaData.updated_at,
@@ -86,8 +87,17 @@ export const useManga = () => {
       user_id: review.user_id,
       rating: review.rating || 0,
       comment: review.comment || '',
-      created_at: review.created_at
-    }))
+      created_at: review.created_at,
+      author: `Utilisateur ${review.user_id.substring(0, 8)}`, // Nom générique
+      avatar: null, // Pas d'avatar pour l'instant
+      date: review.created_at
+    })),
+    specifications: {
+      format: mangaData.format || 'Format standard',
+      pages: mangaData.pages || 200,
+      language: mangaData.language || 'Français',
+      isbn: mangaData.isbn || 'ISBN non disponible'
+    }
   })
 
   return {
