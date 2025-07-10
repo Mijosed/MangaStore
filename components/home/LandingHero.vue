@@ -12,7 +12,7 @@
           Découvre les dernières sorties, tes classiques préférés et des éditions collector exclusives
         </p>
         <NuxtLink to="/catalogue">
-          <Button size="lg" class="text-base font-medium cursor-pointer">Explorer le catalogue</Button>
+          <Button size="lg" class="text-base font-medium cursor-pointer bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600">Explorer le catalogue</Button>
         </NuxtLink>
       </div>
     </section>
