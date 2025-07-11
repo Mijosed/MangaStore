@@ -62,16 +62,12 @@ const handleSort = (value: SortOption) => {
 }
 
 const handleToggleCategory = (category: string) => {
-  console.log('2. handleToggleCategory appelé avec:', category)
   toggleCategory(category)
-  console.log('3. selectedCategories après toggle:', selectedCategories.value)
   currentPage.value = 1
 }
 
 const handleToggleGenre = (genre: string) => {
-  console.log('2. handleToggleGenre appelé avec:', genre)
   toggleGenre(genre)
-  console.log('3. selectedGenres après toggle:', selectedGenres.value)
   currentPage.value = 1
 }
 

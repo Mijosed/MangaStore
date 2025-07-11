@@ -80,7 +80,6 @@ const createOrder = async (paymentIntentId) => {
       throw new Error('Erreur lors de la création des articles de la commande')
     }
 
-    console.log('Commande créée avec succès:', order.id)
     return order
 
   } catch (error) {

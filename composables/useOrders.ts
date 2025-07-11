@@ -182,6 +182,46 @@ export const useOrders = () => {
     return stats
   }
 
+  const fetchOrders = async () => {
+    try {
+      const supabase = useSupabaseClient<Database>()
+      
+      const { data, error: fetchError } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          user_id,
+          status,
+          total,
+          created_at,
+          payment_intent_id,
+          shipping_address,
+          items:order_items (
+            id,
+            quantity,
+            price,
+            manga:manga_id (
+              id,
+              title,
+              cover_url
+            )
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (fetchError) throw fetchError
+
+      orders.value = data || []
+      return data
+    } catch (err) {
+      console.error('Erreur lors du chargement des commandes:', err)
+      error.value = "Erreur lors du chargement des commandes"
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     orders: readonly(orders),
     loading: readonly(loading),
@@ -192,6 +232,7 @@ export const useOrders = () => {
     getOrdersByStatus,
     getTotalOrders,
     getTotalSpent,
-    getOrdersStats
+    getOrdersStats,
+    fetchOrders
   }
 } 
