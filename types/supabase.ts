@@ -34,6 +34,8 @@ export interface Database {
           status: 'pending' | 'processing' | 'completed' | 'cancelled'
           total: number
           created_at: string
+          payment_intent_id?: string
+          shipping_address?: Json
         }
         Insert: {
           id?: string
@@ -41,6 +43,8 @@ export interface Database {
           status?: 'pending' | 'processing' | 'completed' | 'cancelled'
           total: number
           created_at?: string
+          payment_intent_id?: string
+          shipping_address?: Json
         }
         Update: {
           id?: string
@@ -48,6 +52,8 @@ export interface Database {
           status?: 'pending' | 'processing' | 'completed' | 'cancelled'
           total?: number
           created_at?: string
+          payment_intent_id?: string
+          shipping_address?: Json
         }
       }
       order_items: {
