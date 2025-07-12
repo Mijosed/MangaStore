@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-6">Mes commandes hello</h1>
+    <h1 class="text-2xl font-bold mb-6">Mes commandes</h1>
 
     <div v-if="loading" class="flex justify-center items-center h-64">
       <p class="text-gray-500">Chargement des commandes...</p>

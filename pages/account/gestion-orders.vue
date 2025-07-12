@@ -6,11 +6,53 @@ definePageMeta({
   middleware: ['auth', 'admin']
 })
 
-const { orders, loading, error, fetchOrders } = useOrders()
+const { orders, loading, error, fetchOrders, updateOrderStatus } = useOrders()
+const updatingOrderId = ref(null)
+
 onMounted(async () => {
     await fetchOrders()
 })
-console.log(orders)
+
+const validateOrder = async (orderId) => {
+  try {
+    updatingOrderId.value = orderId
+    await updateOrderStatus(orderId, 'processing')
+    
+
+  } catch (err) {
+    console.error('Erreur lors de la validation:', err)
+  } finally {
+    updatingOrderId.value = null
+  }
+}
+
+const completeOrder = async (orderId) => {
+  try {
+    updatingOrderId.value = orderId
+    
+    await updateOrderStatus(orderId, 'completed')
+    
+  } catch (err) {
+    console.error('Erreur lors de la finalisation:', err)
+  } finally {
+    updatingOrderId.value = null
+  }
+}
+
+const cancelOrder = async (orderId) => {
+  if (confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
+    try {
+      updatingOrderId.value = orderId
+
+      await updateOrderStatus(orderId, 'cancelled')
+
+    } catch (err) {
+        console.error('Erreur lors de l\'annulation:', err)
+    } finally {
+      updatingOrderId.value = null
+    }
+  }
+}
 </script>
 
 <template>
@@ -92,6 +134,68 @@ console.log(orders)
                         <span class="font-medium">{{ order.total.toFixed(2) }}€</span>
                     </div>
                 </CardFooter>
+                
+                <div class="p-4 border-t bg-gray-50 dark:bg-gray-900">
+                  <div v-if="order.status === 'pending'" class="flex gap-2">
+                    <Button 
+                      @click="validateOrder(order.id)" 
+                      :disabled="updatingOrderId === order.id"
+                      class="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Icon 
+                        :name="updatingOrderId === order.id ? 'lucide:loader-2' : 'lucide:check'" 
+                        :class="['w-4 h-4 mr-2', { 'animate-spin': updatingOrderId === order.id }]" 
+                      />
+                      {{ updatingOrderId === order.id ? 'Validation...' : 'Valider la commande' }}
+                    </Button>
+                    <Button 
+                      @click="cancelOrder(order.id)" 
+                      :disabled="updatingOrderId === order.id"
+                      variant="outline"
+                      class="border-red-300 text-red-600 hover:bg-red-50"
+                    >
+                      <Icon name="lucide:x" class="w-4 h-4 mr-2" />
+                      Annuler
+                    </Button>
+                  </div>
+                  
+                  <div v-else-if="order.status === 'processing'" class="flex gap-2">
+                    <Button 
+                      @click="completeOrder(order.id)" 
+                      :disabled="updatingOrderId === order.id"
+                      class="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Icon 
+                        :name="updatingOrderId === order.id ? 'lucide:loader-2' : 'lucide:package-check'" 
+                        :class="['w-4 h-4 mr-2', { 'animate-spin': updatingOrderId === order.id }]" 
+                      />
+                      {{ updatingOrderId === order.id ? 'Finalisation...' : 'Marquer comme terminée' }}
+                    </Button>
+                    <Button 
+                      @click="cancelOrder(order.id)" 
+                      :disabled="updatingOrderId === order.id"
+                      variant="outline"
+                      class="border-red-300 text-red-600 hover:bg-red-50"
+                    >
+                      <Icon name="lucide:x" class="w-4 h-4 mr-2" />
+                      Annuler
+                    </Button>
+                  </div>
+                  
+                  <div v-else-if="order.status === 'completed'" class="text-center">
+                    <div class="inline-flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-md">
+                      <Icon name="lucide:check-circle" class="w-4 h-4" />
+                      <span class="text-sm font-medium">Commande terminée</span>
+                    </div>
+                  </div>
+                  
+                  <div v-else-if="order.status === 'cancelled'" class="text-center">
+                    <div class="inline-flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded-md">
+                      <Icon name="lucide:x-circle" class="w-4 h-4" />
+                      <span class="text-sm font-medium">Commande annulée</span>
+                    </div>
+                  </div>
+                </div>
             </Card>
         </div>
     </div>
