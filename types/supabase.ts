@@ -11,6 +11,32 @@ export type UserRole = 'admin' | 'user'
 export interface Database {
   public: {
     Tables: {
+      reviews: {
+        Row: {
+          id: number
+          manga_id: number
+          user_id: string
+          rating: number
+          comment: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          manga_id: number
+          user_id: string
+          rating: number
+          comment: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          manga_id?: number
+          user_id?: string
+          rating?: number
+          comment?: string
+          created_at?: string
+        }
+      }
       roles: {
         Row: {
           id: string

@@ -100,10 +100,38 @@ export const useManga = () => {
     }
   })
 
+  const refreshReviews = async (mangaId: string) => {
+    try {
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('manga_id', mangaId)
+        .order('created_at', { ascending: false })
+
+      if (reviewsError) throw reviewsError
+
+      if (manga.value) {
+        manga.value.reviews = (reviewsData || []).map((review: any) => ({
+          id: review.id,
+          user_id: review.user_id,
+          rating: review.rating || 0,
+          comment: review.comment || '',
+          created_at: review.created_at,
+          author: `Utilisateur ${review.user_id.substring(0, 8)}`,
+          avatar: undefined,
+          date: review.created_at
+        }))
+      }
+    } catch (err) {
+      console.error('Erreur lors du rafraîchissement des avis:', err)
+    }
+  }
+
   return {
     manga,
     loading,
     error,
-    fetchManga
+    fetchManga,
+    refreshReviews
   }
 }
