@@ -24,7 +24,6 @@ export const useProfile = () => {
   const error = ref<string | null>(null)
 
   const fetchProfile = async () => {
-    console.log('Fetching profile for user:', user.value?.id)
     if (!user.value) {
       profile.value = null
       return null
@@ -51,7 +50,6 @@ export const useProfile = () => {
           role: currentUser.role, // Utilise directement le rôle retourné par get_users
           created_at: currentUser.created_at
         }
-        console.log('Updated profile:', profile.value)
       }
 
       return profile.value

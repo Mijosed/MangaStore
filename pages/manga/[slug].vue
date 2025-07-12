@@ -67,7 +67,6 @@ const handleAddToCart = async () => {
     })
   }
 
-  console.log(`${quantity.value} exemplaire(s) ajouté(s) au panier`)
 }
 
 const goBackToCatalogue = () => {

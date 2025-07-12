@@ -22,6 +22,72 @@ const elements = ref(null)
 const cardElement = ref(null)
 const isProcessing = ref(false)
 
+// Fonction pour créer la commande dans Supabase
+const createOrder = async (paymentIntentId) => {
+  try {
+    const supabase = useSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      throw new Error('Utilisateur non connecté')
+    }
+
+    const totalWithTax = cartStore.totalPrice * 1.2 // Prix avec TVA
+
+    // Créer la commande
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        user_id: user.id,
+        status: 'pending',
+        total: totalWithTax,
+        payment_intent_id: paymentIntentId,
+        shipping_address: {
+          firstName: form.value.firstName,
+          lastName: form.value.lastName,
+          email: form.value.email,
+          address: form.value.address,
+          postalCode: form.value.postalCode,
+          city: form.value.city,
+          country: form.value.country,
+          phone: form.value.phone
+        }
+      })
+      .select()
+      .single()
+      
+    if (orderError) {
+      console.error('Erreur lors de la création de la commande:', orderError)
+      throw new Error('Erreur lors de la création de la commande')
+    }
+
+    // Créer les articles de la commande
+    const orderItems = cartStore.items.map(item => ({
+      order_id: order.id,
+      manga_id: item.id,
+      quantity: item.quantity,
+      price: item.price
+    }))
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems)
+
+    if (itemsError) {
+      console.error('Erreur lors de la création des articles:', itemsError)
+      // Supprimer la commande si les articles n'ont pas pu être créés
+      await supabase.from('orders').delete().eq('id', order.id)
+      throw new Error('Erreur lors de la création des articles de la commande')
+    }
+
+    return order
+
+  } catch (error) {
+    console.error('Erreur lors de la création de la commande:', error)
+    throw error
+  }
+}
+
 useHead({
   title: 'Finaliser la commande - MangaStore'
 })
@@ -119,6 +185,9 @@ const handleSubmit = async () => {
 
 
     if (paymentIntent.status === 'succeeded') {
+      // Insérer la commande dans Supabase
+      await createOrder(paymentIntent.id)
+      
       cartStore.clearCart()
       await navigateTo('/checkout/success')
     } else {
@@ -275,7 +344,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
             </div>
             <div v-else class="flex items-center">
               <Icon name="lucide:credit-card" class="w-4 h-4 mr-2" />
-              Payer {{ cartStore.formattedTotalPrice }}€
+              Payer {{ (cartStore.totalPrice * 1.2).toFixed(2) }}€
             </div>
           </Button>
         </div>

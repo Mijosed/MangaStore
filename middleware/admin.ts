@@ -12,7 +12,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // Check admin role
   if (!profile.value?.role || profile.value.role !== 'admin') {
-    console.log('Access denied: User is not admin')
     return navigateTo('/')
   }
 })

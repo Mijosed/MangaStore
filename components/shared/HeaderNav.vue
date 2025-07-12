@@ -30,18 +30,15 @@ const router = useRouter()
 
 watch(() => user.value?.id, async (newId) => {
   if (newId) {
-    console.log('HeaderNav: User changed, fetching profile...')
     await fetchProfile()
   }
 }, { immediate: true })
 
 onMounted(() => {
-  console.log('HeaderNav: Initialisation...')
   cartStore.loadFromLocalStorage()
 })
 
 watch(() => cartStore.totalItems, (newTotal) => {
-  console.log('HeaderNav: Total d\'articles mis à jour:', newTotal)
 })
 
 const logout = async () => {

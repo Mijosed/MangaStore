@@ -37,13 +37,10 @@ export const useCartStore = defineStore('cart', () => {
 
     if (existingItem) {
       existingItem.quantity++
-      console.log('Quantité incrémentée pour:', manga.title, 'Nouvelle quantité:', existingItem.quantity)
     } else {
       items.value.push({ ...manga, quantity: 1 })
-      console.log('Nouvel article ajouté:', manga.title)
     }
 
-    console.log('Total d\'articles dans le panier:', totalItems.value)
     saveToLocalStorage()
   }
 
