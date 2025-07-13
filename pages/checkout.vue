@@ -1,8 +1,10 @@
 <script setup>
 import { useCartStore } from '~/stores/cart'
+import { useStockValidation } from '~/composables/useStockValidation'
 import { loadStripe } from '@stripe/stripe-js'
 
 const cartStore = useCartStore()
+const { validateCartStock, updateStockAfterOrder, restoreStockAfterError } = useStockValidation()
 const config = useRuntimeConfig()
 
 const form = ref({
@@ -132,6 +134,13 @@ const handleSubmit = async () => {
   isProcessing.value = true
 
   try {
+    // Valider le stock avant de procéder au paiement
+    const stockValidation = await validateCartStock(cartStore.items)
+    if (!stockValidation.isValid) {
+      alert('Erreurs de stock:\n' + stockValidation.errors.join('\n'))
+      isProcessing.value = false
+      return
+    }
 
     const paymentIntentResponse = await $fetch('/api/create-payment-intent', {
       method: 'POST',
@@ -151,7 +160,6 @@ const handleSubmit = async () => {
         }
       }
     })
-
 
     if (!paymentIntentResponse || !paymentIntentResponse.clientSecret) {
       throw new Error('Réponse invalide de l\'API de création de paiement')
@@ -183,13 +191,22 @@ const handleSubmit = async () => {
       return
     }
 
-
     if (paymentIntent.status === 'succeeded') {
-      // Insérer la commande dans Supabase
-      await createOrder(paymentIntent.id)
-      
-      cartStore.clearCart()
-      await navigateTo('/checkout/success')
+      try {
+        // Mettre à jour le stock AVANT de créer la commande
+        await updateStockAfterOrder(cartStore.items)
+        
+        // Insérer la commande dans Supabase
+        await createOrder(paymentIntent.id)
+        
+        cartStore.clearCart()
+        await navigateTo('/checkout/success')
+      } catch (stockError) {
+        console.error('Erreur lors de la mise à jour du stock:', stockError)
+        // En cas d'erreur, restaurer le stock et annuler la commande
+        await restoreStockAfterError(cartStore.items)
+        throw new Error('Erreur lors de la finalisation de la commande')
+      }
     } else {
       throw new Error(`Statut de paiement inattendu: ${paymentIntent.status}`)
     }

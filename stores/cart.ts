@@ -1,8 +1,9 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { useSupabaseClient } from '#imports'
 
 export interface CartItem {
-  id: number
+  id: string // Changé de number à string pour cohérence avec la base de données
   title: string
   author: string
   price: number
@@ -32,19 +33,44 @@ export const useCartStore = defineStore('cart', () => {
   const isEmpty = computed(() => items.value.length === 0)
 
   // 👉 Actions
-  function addItem(manga: Omit<CartItem, 'quantity'>) {
-    const existingItem = items.value.find(item => item.id === manga.id)
+  async function addItem(manga: Omit<CartItem, 'quantity'>) {
+    try {
+      // Vérifier le stock disponible avant d'ajouter
+      const supabase = useSupabaseClient()
+      const { data: mangaData, error } = await supabase
+        .from('mangas')
+        .select('stock')
+        .eq('id', manga.id)
+        .single()
 
-    if (existingItem) {
-      existingItem.quantity++
-    } else {
-      items.value.push({ ...manga, quantity: 1 })
+      if (error || !mangaData) {
+        console.error('Erreur lors de la vérification du stock:', error)
+        throw new Error('Impossible de vérifier le stock disponible')
+      }
+
+      const existingItem = items.value.find(item => item.id === manga.id)
+      const currentQuantityInCart = existingItem ? existingItem.quantity : 0
+      
+      // Vérifier si on peut ajouter un exemplaire de plus
+      if (currentQuantityInCart >= (mangaData as any).stock) {
+        throw new Error(`Stock insuffisant. Seulement ${(mangaData as any).stock} exemplaire(s) disponible(s)`)
+      }
+
+      if (existingItem) {
+        existingItem.quantity++
+      } else {
+        items.value.push({ ...manga, quantity: 1 })
+      }
+
+      saveToLocalStorage()
+      return { success: true }
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout au panier:', error)
+      throw error
     }
-
-    saveToLocalStorage()
   }
 
-  function removeItem(itemId: number) {
+  function removeItem(itemId: string) {
     const index = items.value.findIndex(item => item.id === itemId)
     if (index > -1) {
       items.value.splice(index, 1)
@@ -52,7 +78,7 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  function updateQuantity(itemId: number, quantity: number) {
+  function updateQuantity(itemId: string, quantity: number) {
     const item = items.value.find(item => item.id === itemId)
     if (item) {
       if (quantity <= 0) {
@@ -64,7 +90,7 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  function incrementQuantity(itemId: number) {
+  function incrementQuantity(itemId: string) {
     const item = items.value.find(item => item.id === itemId)
     if (item) {
       item.quantity++
@@ -72,7 +98,7 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  function decrementQuantity(itemId: number) {
+  function decrementQuantity(itemId: string) {
     const item = items.value.find(item => item.id === itemId)
     if (item) {
       if (item.quantity > 1) {

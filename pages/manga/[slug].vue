@@ -57,18 +57,24 @@ const handleAddToCart = async () => {
     return
   }
 
-  // Ajouter la quantité demandée au panier
-  for (let i = 0; i < quantity.value; i++) {
-    cartStore.addItem({
-      id: manga.value.id,
-      title: manga.value.title,
-      author: manga.value.author || '',
-      price: manga.value.price,
-      cover: manga.value.cover_url,
-      slug: manga.value.slug
-    })
+  try {
+    // Ajouter la quantité demandée au panier
+    for (let i = 0; i < quantity.value; i++) {
+      await cartStore.addItem({
+        id: manga.value.id,
+        title: manga.value.title,
+        author: manga.value.author || '',
+        price: manga.value.price,
+        cover: manga.value.cover_url,
+        slug: manga.value.slug
+      })
+    }
+    
+    console.log(`${quantity.value} exemplaire(s) ajouté(s) au panier`)
+  } catch (error) {
+    // Afficher l'erreur à l'utilisateur 
+    alert(error.message || 'Erreur lors de l\'ajout au panier')
   }
-
 }
 
 const goBackToCatalogue = () => {
