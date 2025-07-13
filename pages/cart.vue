@@ -21,6 +21,8 @@
             <h3 class="font-semibold text-lg">{{ item.title }}</h3>
             <p class="text-gray-600">{{ item.author }}</p>
             <p class="text-red-600 font-bold">{{ item.price }}€</p>
+            <!-- Statut du stock pour chaque article -->
+            <StockStatus :manga-id="item.id" :quantity="item.quantity" />
           </div>
 
           <div class="flex items-center gap-2 mr-4">
@@ -40,6 +42,7 @@
               variant="outline" 
               @click="cartStore.incrementQuantity(item.id)"
               class="w-8 h-8 p-0"
+              :disabled="!canIncrementQuantity(item.id, item.quantity)"
             >
               <Icon name="lucide:plus" class="w-4 h-4" />
             </Button>
@@ -78,6 +81,17 @@
           </div>
         </div>
 
+        <!-- Alerte si problème de stock -->
+        <div v-if="hasStockIssues" class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
+          <div class="flex items-center gap-2 text-orange-800">
+            <Icon name="lucide:alert-triangle" class="w-5 h-5" />
+            <span class="font-medium">Attention : Problèmes de stock détectés</span>
+          </div>
+          <p class="text-sm text-orange-700 mt-1">
+            Veuillez vérifier les quantités de vos articles avant de procéder au paiement.
+          </p>
+        </div>
+
         <div class="flex gap-4">
           <Button 
             @click="cartStore.clearCart()"
@@ -89,7 +103,10 @@
           </Button>
           
           <NuxtLink to="/checkout" class="flex-1">
-            <Button class="w-full bg-red-600 hover:bg-red-700">
+            <Button 
+              class="w-full bg-red-600 hover:bg-red-700"
+              :disabled="hasStockIssues"
+            >
               <Icon name="lucide:credit-card" class="w-4 h-4 mr-2" />
               Passer au paiement
             </Button>
@@ -101,11 +118,37 @@
 </template>
 
 <script setup>
+import { computed, onMounted } from 'vue'
 import { useCartStore } from '~/stores/cart'
+import { useStockDisplay } from '~/composables/useStockDisplay'
+import StockStatus from '~/components/shared/StockStatus.vue'
 
 const cartStore = useCartStore()
+const { fetchStockInfo, getStock, isInStock } = useStockDisplay()
 
 useHead({
   title: 'Panier - MangaStore'
+})
+
+// Vérifier si on peut incrémenter la quantité d'un article
+const canIncrementQuantity = (mangaId, currentQuantity) => {
+  const stock = getStock(mangaId)
+  return stock !== null && stock > currentQuantity
+}
+
+// Vérifier s'il y a des problèmes de stock dans le panier
+const hasStockIssues = computed(() => {
+  return cartStore.items.some(item => {
+    const stock = getStock(item.id)
+    return stock !== null && (stock === 0 || stock < item.quantity)
+  })
+})
+
+// Charger les informations de stock au montage
+onMounted(async () => {
+  if (!cartStore.isEmpty) {
+    const mangaIds = cartStore.items.map(item => item.id)
+    await fetchStockInfo(mangaIds)
+  }
 })
 </script>

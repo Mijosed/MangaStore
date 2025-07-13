@@ -98,9 +98,11 @@ const logout = async () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" class="relative h-9 w-9 rounded-full hover:bg-white/10">
                 <Avatar class="h-8 w-8">
-                  <AvatarImage :src="user.avatar_url || ''" alt="Photo de profil" />
+                  <AvatarImage :src="user.user_metadata?.avatar_url || ''" alt="Photo de profil" />
                   <AvatarFallback class="bg-red-600 text-white text-sm font-medium">
-                    {{ user.email?.[0]?.toUpperCase() || '?' }}
+                    {{ 
+                      (user.user_metadata?.display_name || user.user_metadata?.username || user.email)?.[0]?.toUpperCase() || '?' 
+                    }}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -109,7 +111,12 @@ const logout = async () => {
             <DropdownMenuContent class="w-56" align="end">
               <DropdownMenuLabel class="font-normal">
                 <div class="flex flex-col space-y-1">
-                  <p class="text-sm font-medium leading-none">{{ user.email }}</p>
+                  <p class="text-sm font-medium leading-none">
+                    {{ user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split('@')[0] }}
+                  </p>
+                  <p class="text-xs leading-none text-muted-foreground">
+                    {{ user.email }}
+                  </p>
                   <p class="text-xs leading-none text-muted-foreground capitalize">
                     {{ profile?.role || 'utilisateur' }}
                   </p>

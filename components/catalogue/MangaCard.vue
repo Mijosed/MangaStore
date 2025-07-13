@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useCartStore } from '~/stores/cart'
 import { useAuth } from '~/composables/useAuth'
 import { useRouter } from 'vue-router'
+import StockStatus from '~/components/shared/StockStatus.vue'
 
 const cartStore = useCartStore()
 const { user } = useAuth()
@@ -29,18 +30,24 @@ const addToCart = async () => {
 
   isAdding.value = true
   
-  cartStore.addItem({
-    id: props.manga.id,
-    title: props.manga.title,
-    author: props.manga.author || '',
-    price: props.manga.price,
-    cover: props.manga.cover_url,
-    slug: props.manga.slug
-  })
-  
-  // Feedback visuel
-  await new Promise(resolve => setTimeout(resolve, 300))
-  isAdding.value = false
+  try {
+    await cartStore.addItem({
+      id: props.manga.id,
+      title: props.manga.title,
+      author: props.manga.author || '',
+      price: props.manga.price,
+      cover: props.manga.cover_url,
+      slug: props.manga.slug
+    })
+    
+    // Feedback visuel
+    await new Promise(resolve => setTimeout(resolve, 300))
+  } catch (error) {
+    // Afficher l'erreur à l'utilisateur
+    alert(error.message || 'Erreur lors de l\'ajout au panier')
+  } finally {
+    isAdding.value = false
+  }
 }
 </script>
 
@@ -68,6 +75,12 @@ const addToCart = async () => {
         <h3 class="font-semibold truncate text-base">{{ manga.title }}</h3>
         <p class="text-sm text-gray-500 truncate">{{ manga.author }}</p>
       </div>
+      
+      <!-- Affichage du stock -->
+      <div class="w-full">
+        <StockStatus :manga-id="manga.id" />
+      </div>
+      
       <div class="flex items-center gap-4 justify-between w-full">
         <span class="font-bold text-lg">{{ manga.price }}€</span>
         <Button 
@@ -76,7 +89,7 @@ const addToCart = async () => {
           class="cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg" 
           :class="{ 'bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600': isAdding }"
           @click="addToCart"
-          :disabled="isAdding"
+          :disabled="isAdding || manga.stock === 0"
         >
           <Icon 
             :name="isAdding ? 'lucide:check' : user ? 'lucide:shopping-cart' : 'lucide:shopping-cart'" 

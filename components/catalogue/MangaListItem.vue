@@ -28,18 +28,24 @@ const addToCart = async () => {
 
   isAdding.value = true
   
-  cartStore.addItem({
-    id: props.manga.id,
-    title: props.manga.title,
-    author: props.manga.author || '',
-    price: props.manga.price,
-    cover: props.manga.cover_url,
-    slug: props.manga.slug
-  })
-  
-  // Feedback visuel
-  await new Promise(resolve => setTimeout(resolve, 300))
-  isAdding.value = false
+  try {
+    await cartStore.addItem({
+      id: props.manga.id,
+      title: props.manga.title,
+      author: props.manga.author || '',
+      price: props.manga.price,
+      cover: props.manga.cover_url,
+      slug: props.manga.slug
+    })
+    
+    // Feedback visuel
+    await new Promise(resolve => setTimeout(resolve, 300))
+  } catch (error) {
+    // Afficher l'erreur à l'utilisateur
+    alert(error.message || 'Erreur lors de l\'ajout au panier')
+  } finally {
+    isAdding.value = false
+  }
 }
 </script>
 

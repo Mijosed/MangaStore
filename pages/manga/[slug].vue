@@ -12,10 +12,12 @@ import { useManga } from '@/composables/useManga'
 import { useCartStore } from '~/stores/cart'
 import { useAuth } from '~/composables/useAuth'
 import MangaHeader from '@/components/manga/MangaHeader.vue'
+import ReviewForm from '@/components/manga/ReviewForm.vue'
+import { StarRating } from '@/components/ui/rating'
 
 const route = useRoute()
 const router = useRouter()
-const { manga, loading, error, fetchManga } = useManga()
+const { manga, loading, error, fetchManga, refreshReviews } = useManga()
 const cartStore = useCartStore()
 const { user } = useAuth()
 
@@ -55,22 +57,34 @@ const handleAddToCart = async () => {
     return
   }
 
-  // Ajouter la quantité demandée au panier
-  for (let i = 0; i < quantity.value; i++) {
-    cartStore.addItem({
-      id: manga.value.id,
-      title: manga.value.title,
-      author: manga.value.author || '',
-      price: manga.value.price,
-      cover: manga.value.cover_url,
-      slug: manga.value.slug
-    })
+  try {
+    // Ajouter la quantité demandée au panier
+    for (let i = 0; i < quantity.value; i++) {
+      await cartStore.addItem({
+        id: manga.value.id,
+        title: manga.value.title,
+        author: manga.value.author || '',
+        price: manga.value.price,
+        cover: manga.value.cover_url,
+        slug: manga.value.slug
+      })
+    }
+    
+    console.log(`${quantity.value} exemplaire(s) ajouté(s) au panier`)
+  } catch (error) {
+    // Afficher l'erreur à l'utilisateur 
+    alert(error.message || 'Erreur lors de l\'ajout au panier')
   }
-
 }
 
 const goBackToCatalogue = () => {
   router.push('/catalogue')
+}
+
+const handleReviewAdded = async () => {
+  if (manga.value) {
+    await refreshReviews(manga.value.id)
+  }
 }
 
 // Charger les données au montage du composant
@@ -170,45 +184,69 @@ onMounted(async () => {
         </TabsContent>
 
         <TabsContent value="reviews" class="mt-6">
-          <div class="bg-white rounded-lg p-6 shadow-sm border">
-            <h3 class="text-xl font-semibold mb-4">Avis des lecteurs</h3>
+          <div class="space-y-6">
+            <!-- Formulaire d'ajout d'avis (seulement si connecté) -->
+            <ReviewForm
+              v-if="user"
+              :manga-id="manga.id"
+              @review-added="handleReviewAdded"
+            />
             
-            <div v-if="reviewsCount === 0" class="text-center py-8 text-gray-500">
-              <Icon name="lucide:message-circle" class="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>Aucun avis pour ce manga pour le moment.</p>
-              <p class="text-sm mt-2">Soyez le premier à partager votre opinion !</p>
+            <!-- Message pour les utilisateurs non connectés -->
+            <div v-else class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-center gap-3">
+                <Icon name="lucide:info" class="w-5 h-5 text-blue-600" />
+                <div>
+                  <p class="text-blue-800 font-medium">Connectez-vous pour laisser un avis</p>
+                  <p class="text-blue-600 text-sm mt-1">
+                    Vous devez être connecté pour partager votre opinion sur ce manga.
+                  </p>
+                </div>
+              </div>
+              <div class="mt-3">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  @click="router.push('/login')"
+                  class="text-blue-600 border-blue-300 hover:bg-blue-50"
+                >
+                  Se connecter
+                </Button>
+              </div>
             </div>
 
-            <div v-else class="space-y-6">
-              <div v-for="review in mangaReviews" :key="review.id" class="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
-                <div class="flex items-start gap-4">
-                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
-                    {{ review.author ? review.author[0].toUpperCase() : 'U' }}
-                  </div>
-                  <div class="flex-1">
-                    <div class="flex justify-between items-center mb-2">
-                      <span class="font-medium text-gray-900">{{ review.author || 'Utilisateur anonyme' }}</span>
-                      <span class="text-sm text-gray-500">
-                        {{ review.date ? new Date(review.date).toLocaleDateString('fr-FR') : 'Date inconnue' }}
-                      </span>
+            <!-- Liste des avis -->
+            <div class="bg-white rounded-lg p-6 shadow-sm border">
+              <h3 class="text-xl font-semibold mb-4">Avis des lecteurs</h3>
+              
+              <div v-if="reviewsCount === 0" class="text-center py-8 text-gray-500">
+                <Icon name="lucide:message-circle" class="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Aucun avis pour ce manga pour le moment.</p>
+                <p class="text-sm mt-2">Soyez le premier à partager votre opinion !</p>
+              </div>
+
+              <div v-else class="space-y-6">
+                <div v-for="review in mangaReviews" :key="review.id" class="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                  <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                      {{ review.author ? review.author[0].toUpperCase() : 'U' }}
                     </div>
-                    <div class="flex items-center mb-2">
-                      <div class="flex gap-0.5">
-                        <Icon
-                          v-for="star in 5"
-                          :key="star"
-                          name="lucide:star"
-                          :class="[
-                            'w-4 h-4',
-                            star <= (review.rating || 0)
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-300'
-                          ]"
+                    <div class="flex-1">
+                      <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium text-gray-900">{{ review.author || 'Utilisateur anonyme' }}</span>
+                        <span class="text-sm text-gray-500">
+                          {{ review.date ? new Date(review.date).toLocaleDateString('fr-FR') : 'Date inconnue' }}
+                        </span>
+                      </div>
+                      <div class="mb-2">
+                        <StarRating 
+                          :rating="review.rating || 0"
+                          :show-label="true"
+                          size="sm"
                         />
                       </div>
-                      <span class="ml-2 text-sm text-gray-600">{{ review.rating || 0 }}/5</span>
+                      <p class="text-gray-700 leading-relaxed">{{ review.comment || 'Aucun commentaire.' }}</p>
                     </div>
-                    <p class="text-gray-700 leading-relaxed">{{ review.comment || 'Aucun commentaire.' }}</p>
                   </div>
                 </div>
               </div>

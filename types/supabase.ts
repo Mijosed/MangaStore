@@ -11,6 +11,32 @@ export type UserRole = 'admin' | 'user'
 export interface Database {
   public: {
     Tables: {
+      reviews: {
+        Row: {
+          id: number
+          manga_id: number
+          user_id: string
+          rating: number
+          comment: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          manga_id: number
+          user_id: string
+          rating: number
+          comment: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          manga_id?: number
+          user_id?: string
+          rating?: number
+          comment?: string
+          created_at?: string
+        }
+      }
       roles: {
         Row: {
           id: string
@@ -84,13 +110,20 @@ export interface Database {
       get_users: {
         Args: Record<string, never>
         Returns: {
-          id: string        // uuid est représenté comme string en TypeScript
-          email: string     // varchar est représenté comme string en TypeScript
-          role: UserRole
-          created_at: string // timestamptz est représenté comme string en TypeScript
+          id: string
+          email: string
+          raw_user_meta_data: Json
+          created_at: string
+        }[]
+      }
+      get_users_display_info: {
+        Args: {
+          user_uuids: string[]
+        }
+        Returns: {
+          id: string
+          display_name: string
           avatar_url: string | null
-          username: string | null
-          last_sign_in_at: string | null
         }[]
       }
       delete_user: {
