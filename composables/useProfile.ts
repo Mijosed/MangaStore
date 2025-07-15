@@ -22,15 +22,13 @@ export const useProfile = () => {
     error.value = null
 
     try {
-      // Initialiser le profil avec les données de base de l'utilisateur
       profile.value = {
         id: user.value.id,
         email: user.value.email || '',
-        role: 'user', // Rôle par défaut
+        role: 'user',
         created_at: user.value.created_at || new Date().toISOString()
       }
 
-      // Vérifier si l'utilisateur est admin
       const supabase = useSupabaseClient<Database>()
       
       const { data: isAdmin, error: adminError } = await supabase
@@ -38,7 +36,6 @@ export const useProfile = () => {
 
       if (adminError) {
         console.error('is_admin RPC error:', adminError)
-        // Fallback pour admin@mail.fr si RPC échoue
         if (user.value.email === 'admin@mail.fr' && profile.value) {
           profile.value.role = 'admin'
         }
@@ -48,10 +45,9 @@ export const useProfile = () => {
         }
       }
     } catch (err) {
-      error.value = "Erreur lors du chargement du profil"
+      error.value = 'Erreur lors du chargement du profil'
       console.error('Error fetching profile:', err)
       
-      // Fallback en cas d'erreur complète
       if (user.value.email === 'admin@mail.fr' && profile.value) {
         profile.value.role = 'admin'
       }
@@ -62,7 +58,6 @@ export const useProfile = () => {
     return profile.value
   }
 
-  // Watch user changes to reload profile automatically
   watch(() => user.value?.id, (newId) => {
     if (newId) {
       fetchProfile()
@@ -79,14 +74,12 @@ export const useProfile = () => {
   }
 }
 
-// Types for profile updates
 interface ProfileUpdateData {
   role?: 'admin' | 'user'
   username?: string
   avatar_url?: string
 }
 
-// Update profile function
 const updateProfile = async (userId: string, data: ProfileUpdateData) => {
   const supabase = useSupabaseClient<Database>()
   const { error } = await supabase
@@ -97,5 +90,4 @@ const updateProfile = async (userId: string, data: ProfileUpdateData) => {
   if (error) throw error
 }
 
-// Export the function
 export { updateProfile, type ProfileUpdateData }
