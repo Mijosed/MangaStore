@@ -1,8 +1,6 @@
 <script setup>
 import { useCartStore } from "~/stores/cart";
 import { useStockValidation } from "~/composables/useStockValidation";
-import { useCheckoutForm } from "~/composables/useCheckoutForm";
-import { useStripePayment } from "~/composables/useStripePayment";
 
 // Protection de la route
 definePageMeta({
