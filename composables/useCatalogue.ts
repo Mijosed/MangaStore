@@ -114,9 +114,8 @@ export const useCatalogue = () => {
             name
           )
         )
-      `) as any // Type assertion nécessaire à cause des limitations de Supabase
+      `) as any
     
-    // Tri
     switch (sortOption) {
       case 'price-asc':
         query = query.order('price', { ascending: true })

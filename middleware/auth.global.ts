@@ -6,8 +6,8 @@ export default defineNuxtRouteMiddleware((to) => {
   // Allow public pages
   const publicPages = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/catalogue', '/contact']
   
-  // Allow manga detail pages and other public routes
-  if (publicPages.includes(to.path) || to.path.startsWith('/manga/')) {
+  // Allow manga detail pages, checkout success and other public routes
+  if (publicPages.includes(to.path) || to.path.startsWith('/manga/') || to.path.startsWith('/checkout/success')) {
     return
   }
 

@@ -16,18 +16,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      supabase: {
-        redirect: false,
-        // Configuration pour gérer les erreurs de token
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        persistSession: true,
-        // Durée de vie du token (optionnel)
-        sessionRefreshTimeout: 30 * 60 * 1000, // 30 minutes
-      },
-      stripe: {
-        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
-      }
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY
     },
   },
   shadcn: {

@@ -30,7 +30,6 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
     }
   }
 
-  // Nouvelle méthode pour initialiser avec des catégories pré-sélectionnées
   const initializeWithCategory = (category: string): void => {
     if (category && !selectedCategories.value.includes(category)) {
       selectedCategories.value.push(category)
@@ -38,19 +37,15 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
   }
 
   const filteredMangas = computed(() => {
-    // Filtrage
     let result = mangas.value.filter(manga => {
-      // Filtre par catégorie
       const matchesCategory = selectedCategories.value.length === 0 || 
                             selectedCategories.value.includes(manga.category.name)
 
-      // Filtre par genre (vérifie si au moins un des genres sélectionnés correspond)
       const matchesGenre = selectedGenres.value.length === 0 || 
                           selectedGenres.value.some(selectedGenre => {
                             return manga.manga_genres.some(mg => mg.genre.name === selectedGenre)
                           })
 
-      // Filtre par recherche
       const searchLower = searchQuery.value.toLowerCase()
       const matchesSearch = searchQuery.value === '' ||
                           manga.title.toLowerCase().includes(searchLower) ||
@@ -59,7 +54,6 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
       return matchesCategory && matchesGenre && matchesSearch
     })
 
-    // Tri
     result = [...result].sort((a, b) => {
       switch (sortOption.value) {
         case 'title':
@@ -69,7 +63,6 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
         case 'price-desc':
           return b.price - a.price
         case 'popularity':
-          // Pour la popularité, on utilise la note moyenne
           return (b.average_rating || 0) - (a.average_rating || 0)
         default:
           return 0

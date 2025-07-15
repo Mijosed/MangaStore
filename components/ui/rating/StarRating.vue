@@ -32,7 +32,7 @@ defineProps({
   },
   size: {
     type: String,
-    default: 'md', // 'sm', 'md', 'lg'
+    default: 'md', 
     validator: (value) => ['sm', 'md', 'lg'].includes(value)
   },
   showLabel: {

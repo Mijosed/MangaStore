@@ -68,7 +68,7 @@ export const useManga = () => {
       rating: mangaData.average_rating || 0,
       stock: mangaData.stock || 0,
       release_date: mangaData.release_date,
-      releaseDate: mangaData.release_date, // Alias pour compatibility
+      releaseDate: mangaData.release_date,
       publisher: mangaData.publisher || 'Éditeur non spécifié',
       average_rating: mangaData.average_rating || 0,
       created_at: mangaData.created_at,
@@ -92,7 +92,6 @@ export const useManga = () => {
       }
     }
 
-    // Enrichir les reviews avec les informations des utilisateurs
     baseData.reviews = await enrichReviewsWithUserInfo(mangaData.reviews || [])
     
     return baseData
@@ -104,16 +103,13 @@ export const useManga = () => {
     }
 
     try {
-      // Récupérer les IDs uniques des utilisateurs
       const userIds = [...new Set(reviews.map(review => review.user_id))]
       
-      // Récupérer les informations d'affichage des utilisateurs
       const { data, error } = await supabase
         .rpc('get_users_display_info', { user_uuids: userIds } as any)
       
       if (error) {
         console.error('Erreur lors de la récupération des infos utilisateurs:', error)
-        // Fallback : utiliser des noms génériques
         return reviews.map(review => ({
           id: review.id,
           user_id: review.user_id,
@@ -128,7 +124,6 @@ export const useManga = () => {
 
       const usersInfo = data as any[] || []
       
-      // Mapper les reviews avec les vraies informations des utilisateurs
       return reviews.map(review => {
         const userInfo = usersInfo.find((user: any) => user.id === review.user_id)
         return {
@@ -144,7 +139,6 @@ export const useManga = () => {
       })
     } catch (err) {
       console.error('Erreur lors de l\'enrichissement des reviews:', err)
-      // Fallback : utiliser des noms génériques
       return reviews.map(review => ({
         id: review.id,
         user_id: review.user_id,
