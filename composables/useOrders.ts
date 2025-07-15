@@ -47,7 +47,6 @@ export const useOrders = () => {
       const supabase = useSupabaseClient<Database>()
       const { data: { user } } = await supabase.auth.getUser()
       
-      // Utiliser l'ID utilisateur fourni ou celui de l'utilisateur connecté
       const targetUserId = userId || user?.id
       
       if (!targetUserId) {
@@ -84,7 +83,7 @@ export const useOrders = () => {
       return data
     } catch (err) {
       console.error('Erreur lors du chargement des commandes:', err)
-      error.value = "Erreur lors du chargement des commandes"
+      error.value = 'Erreur lors du chargement des commandes'
       return null
     } finally {
       loading.value = false
@@ -124,7 +123,7 @@ export const useOrders = () => {
       return data
     } catch (err) {
       console.error('Erreur lors de la récupération de la commande:', err)
-      error.value = "Erreur lors de la récupération de la commande"
+      error.value = 'Erreur lors de la récupération de la commande'
       return null
     }
   }
@@ -142,7 +141,6 @@ export const useOrders = () => {
 
       if (updateError) throw updateError
 
-      // Mettre à jour la commande dans la liste locale
       const orderIndex = orders.value.findIndex(order => order.id === orderId)
       if (orderIndex !== -1) {
         orders.value[orderIndex] = data
@@ -151,7 +149,7 @@ export const useOrders = () => {
       return data
     } catch (err) {
       console.error('Erreur lors de la mise à jour du statut:', err)
-      error.value = "Erreur lors de la mise à jour du statut"
+      error.value = 'Erreur lors de la mise à jour du statut'
       return null
     }
   }
@@ -215,7 +213,7 @@ export const useOrders = () => {
       return data
     } catch (err) {
       console.error('Erreur lors du chargement des commandes:', err)
-      error.value = "Erreur lors du chargement des commandes"
+      error.value = 'Erreur lors du chargement des commandes'
       return null
     } finally {
       loading.value = false
