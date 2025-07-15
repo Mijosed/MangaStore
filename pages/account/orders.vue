@@ -6,6 +6,18 @@
       <p class="text-gray-500">Chargement des commandes...</p>
     </div>
 
+    <div v-else-if="error" class="text-center py-12">
+      <Icon name="lucide:alert-circle" class="mx-auto h-12 w-12 text-red-400" />
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">Erreur de chargement</h3>
+      <p class="mt-1 text-sm text-gray-500">{{ error }}</p>
+      <div class="mt-6">
+        <Button @click="fetchUserOrders()" variant="outline">
+          <Icon name="lucide:refresh-cw" class="w-4 h-4 mr-2" />
+          Réessayer
+        </Button>
+      </div>
+    </div>
+
     <div v-else-if="orders.length === 0" class="text-center py-12">
       <Icon name="lucide:package" class="mx-auto h-12 w-12 text-gray-400" />
       <h3 class="mt-2 text-sm font-semibold text-gray-900">Aucune commande</h3>
@@ -23,8 +35,26 @@
     <div v-else class="space-y-6">
       <Card v-for="order in orders" :key="order.id" class="overflow-hidden">
         <CardHeader>
-          <CardTitle class="flex justify-between">
-            <span>Commande #{{ order.id }}</span>
+          <CardTitle class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <span>Commande #{{ order.id }}</span>
+              <span 
+                :class="{
+                  'bg-yellow-100 text-yellow-800': order.status === 'pending',
+                  'bg-blue-100 text-blue-800': order.status === 'processing',
+                  'bg-green-100 text-green-800': order.status === 'completed',
+                  'bg-red-100 text-red-800': order.status === 'cancelled'
+                }"
+                class="px-2 py-1 rounded-full text-xs font-medium capitalize"
+              >
+                {{ 
+                  order.status === 'pending' ? 'En attente' :
+                  order.status === 'processing' ? 'En cours' :
+                  order.status === 'completed' ? 'Terminée' :
+                  order.status === 'cancelled' ? 'Annulée' : order.status
+                }}
+              </span>
+            </div>
             <span class="text-sm font-normal text-gray-500">
               {{ new Date(order.created_at).toLocaleDateString('fr-FR') }}
             </span>
@@ -56,44 +86,17 @@
 </template>
 
 <script setup lang="ts">
+import { useOrders } from '~/composables/useOrders'
+
 definePageMeta({
   layout: 'account',
   middleware: 'auth'
 })
 
-const orders = ref([])
-const loading = ref(true)
+const { orders, loading, error, fetchUserOrders } = useOrders()
 
-// Simuler le chargement des commandes
-// À remplacer par un vrai appel API
+// Charger les commandes de l'utilisateur connecté
 onMounted(async () => {
-  try {
-    const supabase = useSupabaseClient()
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        id,
-        created_at,
-        total,
-        items:order_items (
-          id,
-          quantity,
-          price,
-          manga:manga_id (
-            id,
-            title,
-            cover_url
-          )
-        )
-      `)
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-    orders.value = data || []
-  } catch (error) {
-    console.error('Error loading orders:', error)
-  } finally {
-    loading.value = false
-  }
+  await fetchUserOrders()
 })
 </script>

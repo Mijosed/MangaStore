@@ -60,6 +60,14 @@
                 <Icon name="heroicons:book-open" class="mr-3 h-5 w-5" />
                 <span>Gestion des mangas</span>
               </NuxtLink>
+              <NuxtLink
+                to="/account/gestion-orders"
+                class="flex items-center rounded-lg px-3 py-2 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                active-class="bg-gray-100 dark:bg-gray-800"
+              >
+                <Icon name="heroicons:shopping-bag" class="mr-3 h-5 w-5" />
+                <span>Gestion des commandes</span>
+              </NuxtLink>
             </template>
           </nav>
         </div>
@@ -119,6 +127,14 @@
                 >
                   <Icon name="heroicons:book-open" class="mr-3 h-5 w-5" />
                   <span>Gestion des mangas</span>
+                </NuxtLink>
+                <NuxtLink
+                  to="/account/orders/admin"
+                  class="flex items-center rounded-lg px-3 py-2 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                  active-class="bg-gray-100 dark:bg-gray-800"
+                >
+                  <Icon name="heroicons:shopping-bag" class="mr-3 h-5 w-5" />
+                  <span>Gestion des commandes</span>
                 </NuxtLink>
               </template>
             </nav>

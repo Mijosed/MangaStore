@@ -1,8 +1,10 @@
 <script setup>
 import { useCartStore } from '~/stores/cart'
+import { useStockValidation } from '~/composables/useStockValidation'
 import { loadStripe } from '@stripe/stripe-js'
 
 const cartStore = useCartStore()
+const { validateCartStock, updateStockAfterOrder, restoreStockAfterError } = useStockValidation()
 const config = useRuntimeConfig()
 
 const form = ref({
@@ -21,6 +23,72 @@ const stripe = ref(null)
 const elements = ref(null)
 const cardElement = ref(null)
 const isProcessing = ref(false)
+
+// Fonction pour créer la commande dans Supabase
+const createOrder = async (paymentIntentId) => {
+  try {
+    const supabase = useSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      throw new Error('Utilisateur non connecté')
+    }
+
+    const totalWithTax = cartStore.totalPrice * 1.2 // Prix avec TVA
+
+    // Créer la commande
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        user_id: user.id,
+        status: 'pending',
+        total: totalWithTax,
+        payment_intent_id: paymentIntentId,
+        shipping_address: {
+          firstName: form.value.firstName,
+          lastName: form.value.lastName,
+          email: form.value.email,
+          address: form.value.address,
+          postalCode: form.value.postalCode,
+          city: form.value.city,
+          country: form.value.country,
+          phone: form.value.phone
+        }
+      })
+      .select()
+      .single()
+      
+    if (orderError) {
+      console.error('Erreur lors de la création de la commande:', orderError)
+      throw new Error('Erreur lors de la création de la commande')
+    }
+
+    // Créer les articles de la commande
+    const orderItems = cartStore.items.map(item => ({
+      order_id: order.id,
+      manga_id: item.id,
+      quantity: item.quantity,
+      price: item.price
+    }))
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems)
+
+    if (itemsError) {
+      console.error('Erreur lors de la création des articles:', itemsError)
+      // Supprimer la commande si les articles n'ont pas pu être créés
+      await supabase.from('orders').delete().eq('id', order.id)
+      throw new Error('Erreur lors de la création des articles de la commande')
+    }
+
+    return order
+
+  } catch (error) {
+    console.error('Erreur lors de la création de la commande:', error)
+    throw error
+  }
+}
 
 useHead({
   title: 'Finaliser la commande - MangaStore'
@@ -66,6 +134,13 @@ const handleSubmit = async () => {
   isProcessing.value = true
 
   try {
+    // Valider le stock avant de procéder au paiement
+    const stockValidation = await validateCartStock(cartStore.items)
+    if (!stockValidation.isValid) {
+      alert('Erreurs de stock:\n' + stockValidation.errors.join('\n'))
+      isProcessing.value = false
+      return
+    }
 
     const paymentIntentResponse = await $fetch('/api/create-payment-intent', {
       method: 'POST',
@@ -85,7 +160,6 @@ const handleSubmit = async () => {
         }
       }
     })
-
 
     if (!paymentIntentResponse || !paymentIntentResponse.clientSecret) {
       throw new Error('Réponse invalide de l\'API de création de paiement')
@@ -117,10 +191,22 @@ const handleSubmit = async () => {
       return
     }
 
-
     if (paymentIntent.status === 'succeeded') {
-      cartStore.clearCart()
-      await navigateTo('/checkout/success')
+      try {
+        // Mettre à jour le stock AVANT de créer la commande
+        await updateStockAfterOrder(cartStore.items)
+        
+        // Insérer la commande dans Supabase
+        await createOrder(paymentIntent.id)
+        
+        cartStore.clearCart()
+        await navigateTo('/checkout/success')
+      } catch (stockError) {
+        console.error('Erreur lors de la mise à jour du stock:', stockError)
+        // En cas d'erreur, restaurer le stock et annuler la commande
+        await restoreStockAfterError(cartStore.items)
+        throw new Error('Erreur lors de la finalisation de la commande')
+      }
     } else {
       throw new Error(`Statut de paiement inattendu: ${paymentIntent.status}`)
     }
@@ -160,7 +246,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
           <form @submit.prevent="handleSubmit" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label for="firstName">Prénom *</Label>
+                <Label for="firstName" class="mb-2">Prénom *</Label>
                 <Input 
                   id="firstName" 
                   v-model="form.firstName" 
@@ -169,7 +255,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
                 />
               </div>
               <div>
-                <Label for="lastName">Nom *</Label>
+                <Label for="lastName" class="mb-2">Nom *</Label>
                 <Input 
                   id="lastName" 
                   v-model="form.lastName" 
@@ -180,7 +266,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
             </div>
 
             <div>
-              <Label for="email">Email *</Label>
+              <Label for="email" class="mb-2">Email *</Label>
               <Input 
                 id="email" 
                 v-model="form.email" 
@@ -191,7 +277,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
             </div>
 
             <div>
-              <Label for="address">Adresse *</Label>
+              <Label for="address" class="mb-2">Adresse *</Label>
               <Input 
                 id="address" 
                 v-model="form.address" 
@@ -202,7 +288,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label for="postalCode">Code postal *</Label>
+                <Label for="postalCode" class="mb-2">Code postal *</Label>
                 <Input 
                   id="postalCode" 
                   v-model="form.postalCode" 
@@ -211,7 +297,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
                 />
               </div>
               <div>
-                <Label for="city">Ville *</Label>
+                <Label for="city" class="mb-2">Ville *</Label>
                 <Input 
                   id="city" 
                   v-model="form.city" 
@@ -220,7 +306,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
                 />
               </div>
               <div>
-                <Label for="country">Pays *</Label>
+                <Label for="country" class="mb-2">Pays *</Label>
                 <Select v-model="form.country" required>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un pays" />
@@ -236,7 +322,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
             </div>
 
             <div>
-              <Label for="phone">Téléphone</Label>
+              <Label for="phone" class="mb-2">Téléphone</Label>
               <Input 
                 id="phone" 
                 v-model="form.phone" 
@@ -275,7 +361,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
             </div>
             <div v-else class="flex items-center">
               <Icon name="lucide:credit-card" class="w-4 h-4 mr-2" />
-              Payer {{ cartStore.formattedTotalPrice }}€
+              Payer {{ (cartStore.totalPrice * 1.2).toFixed(2) }}€
             </div>
           </Button>
         </div>

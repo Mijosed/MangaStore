@@ -46,37 +46,40 @@ const onSortChange = (value: unknown) => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Barre de recherche -->
+  <div class="space-y-4">
     <SearchBar
       :modelValue="searchQuery"
       placeholder="Rechercher un manga, un auteur..."
       @search="emit('search', $event)"
       @clear="emit('clear')"
-      class="w-full"
+      class="w-full max-w-md"
     />
 
-    <!-- En-tête avec options d'affichage -->
-    <div class="flex items-center justify-between">
-      <div>
-        <p v-if="searchQuery" class="text-sm text-muted-foreground mt-1">
-          Résultats pour "{{ searchQuery }}" : {{ totalResults }} manga(s)
-          trouvé(s)
+   
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="min-w-0">
+        <p v-if="totalResults > 0" class="text-sm text-gray-600 font-medium">
+          {{ totalResults }} manga{{ totalResults > 1 ? 's' : '' }} trouvé{{ totalResults > 1 ? 's' : '' }}
+          <span v-if="searchQuery" class="text-red-600">pour "{{ searchQuery }}"</span>
+        </p>
+        <p v-else-if="searchQuery" class="text-sm text-gray-500">
+          Aucun résultat pour "{{ searchQuery }}"
         </p>
       </div>
 
-      <div class="flex items-center gap-4">
-        <!-- Sélecteur de tri -->
+      
+      <div class="flex flex-col xs:flex-row items-start xs:items-center gap-3 xs:gap-4">
+        
         <Select 
           :value="sortOption"
           @update:modelValue="onSortChange"
         >
-          <SelectTrigger class="w-48">
+          <SelectTrigger class="w-full xs:w-44 sm:w-48">
             <SelectValue placeholder="Trier par...">
               {{ currentSortLabel }}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent align="end">
             <SelectItem
               v-for="(label, key) in sortOptions"
               :key="key"
@@ -87,23 +90,27 @@ const onSortChange = (value: unknown) => {
           </SelectContent>
         </Select>
 
-        <!-- Boutons de vue -->
-        <div class="flex gap-2">
+        
+        <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
           <Button
-            variant="outline"
-            size="icon"
-            :class="{ 'bg-gray-100': viewMode === 'grid' }"
+            variant="ghost"
+            size="sm"
+            :class="{ 'bg-white shadow-sm': viewMode === 'grid' }"
             @click="emit('update:viewMode', 'grid')"
+            class="px-3"
           >
-            <Icon name="lucide:grid" class="w-4 h-4" />
+            <Icon name="lucide:grid-3x3" class="w-4 h-4 mr-2" />
+            <span class="hidden sm:inline">Grille</span>
           </Button>
           <Button
-            variant="outline"
-            size="icon"
-            :class="{ 'bg-gray-100': viewMode === 'list' }"
+            variant="ghost"
+            size="sm"
+            :class="{ 'bg-white shadow-sm': viewMode === 'list' }"
             @click="emit('update:viewMode', 'list')"
+            class="px-3"
           >
-            <Icon name="lucide:list" class="w-4 h-4" />
+            <Icon name="lucide:list" class="w-4 h-4 mr-2" />
+            <span class="hidden sm:inline">Liste</span>
           </Button>
         </div>
       </div>

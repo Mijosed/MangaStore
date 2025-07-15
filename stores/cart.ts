@@ -1,7 +1,9 @@
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { useSupabaseClient } from '#imports'
 
 export interface CartItem {
-  id: number
+  id: string // Changé de number à string pour cohérence avec la base de données
   title: string
   author: string
   price: number
@@ -10,123 +12,174 @@ export interface CartItem {
   quantity: number
 }
 
-export const useCartStore = defineStore('cart', {
-  state: () => ({
-    items: [] as CartItem[],
-    isOpen: false
-  }),
+export const useCartStore = defineStore('cart', () => {
+  
+  const items = ref<CartItem[]>([])
+  const isOpen = ref(false)
 
-  getters: {
-    totalItems: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
-    
-    totalPrice: (state) => state.items.reduce((total, item) => total + (item.price * item.quantity), 0),
-    
-    formattedTotalPrice: (state) => {
-      const total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
-      return total.toFixed(2)
-    },
+  
+  const totalItems = computed(() =>
+    items.value.reduce((total, item) => total + item.quantity, 0)
+  )
 
-    isEmpty: (state) => state.items.length === 0
-  },
+  const totalPrice = computed(() =>
+    items.value.reduce((total, item) => total + item.price * item.quantity, 0)
+  )
 
-  actions: {
-    addItem(manga: Omit<CartItem, 'quantity'>) {
-      const existingItem = this.items.find(item => item.id === manga.id)
+  const formattedTotalPrice = computed(() =>
+    totalPrice.value.toFixed(2)
+  )
+
+  const isEmpty = computed(() => items.value.length === 0)
+
+  // 👉 Actions
+  async function addItem(manga: Omit<CartItem, 'quantity'>) {
+    try {
+      // Vérifier le stock disponible avant d'ajouter
+      const supabase = useSupabaseClient()
+      const { data: mangaData, error } = await supabase
+        .from('mangas')
+        .select('stock')
+        .eq('id', manga.id)
+        .single()
+
+      if (error || !mangaData) {
+        console.error('Erreur lors de la vérification du stock:', error)
+        throw new Error('Impossible de vérifier le stock disponible')
+      }
+
+      const existingItem = items.value.find(item => item.id === manga.id)
+      const currentQuantityInCart = existingItem ? existingItem.quantity : 0
       
+      // Vérifier si on peut ajouter un exemplaire de plus
+      if (currentQuantityInCart >= (mangaData as any).stock) {
+        throw new Error(`Stock insuffisant. Seulement ${(mangaData as any).stock} exemplaire(s) disponible(s)`)
+      }
+
       if (existingItem) {
         existingItem.quantity++
-        console.log('Quantité incrémentée pour:', manga.title, 'Nouvelle quantité:', existingItem.quantity)
       } else {
-        this.items.push({ ...manga, quantity: 1 })
-        console.log('Nouvel article ajouté:', manga.title)
+        items.value.push({ ...manga, quantity: 1 })
       }
-      
-      console.log('Total d\'articles dans le panier:', this.totalItems)
-      
-      // Sauvegarder dans localStorage
-      this.saveToLocalStorage()
-    },
 
-    removeItem(itemId: number) {
-      const index = this.items.findIndex(item => item.id === itemId)
-      if (index > -1) {
-        this.items.splice(index, 1)
-        this.saveToLocalStorage()
+      saveToLocalStorage()
+      return { success: true }
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout au panier:', error)
+      throw error
+    }
+  }
+
+  function removeItem(itemId: string) {
+    const index = items.value.findIndex(item => item.id === itemId)
+    if (index > -1) {
+      items.value.splice(index, 1)
+      saveToLocalStorage()
+    }
+  }
+
+  function updateQuantity(itemId: string, quantity: number) {
+    const item = items.value.find(item => item.id === itemId)
+    if (item) {
+      if (quantity <= 0) {
+        removeItem(itemId)
+      } else {
+        item.quantity = quantity
+        saveToLocalStorage()
       }
-    },
+    }
+  }
 
-    updateQuantity(itemId: number, quantity: number) {
-      const item = this.items.find(item => item.id === itemId)
-      if (item) {
-        if (quantity <= 0) {
-          this.removeItem(itemId)
-        } else {
-          item.quantity = quantity
-          this.saveToLocalStorage()
-        }
+  function incrementQuantity(itemId: string) {
+    const item = items.value.find(item => item.id === itemId)
+    if (item) {
+      item.quantity++
+      saveToLocalStorage()
+    }
+  }
+
+  function decrementQuantity(itemId: string) {
+    const item = items.value.find(item => item.id === itemId)
+    if (item) {
+      if (item.quantity > 1) {
+        item.quantity--
+        saveToLocalStorage()
+      } else {
+        removeItem(itemId)
       }
-    },
+    }
+  }
 
-    incrementQuantity(itemId: number) {
-      const item = this.items.find(item => item.id === itemId)
-      if (item) {
-        item.quantity++
-        this.saveToLocalStorage()
-      }
-    },
+  function clearCart() {
+    items.value = []
+    saveToLocalStorage()
+  }
+  
+  // Nouvelle fonction pour vider complètement le panier et supprimer du localStorage
+  function clearCartAndStorage() {
+    items.value = []
+    isOpen.value = false
+    if (process.client) {
+      localStorage.removeItem('mangastore-cart')
+    }
+  }
 
-    decrementQuantity(itemId: number) {
-      const item = this.items.find(item => item.id === itemId)
-      if (item) {
-        if (item.quantity > 1) {
-          item.quantity--
-          this.saveToLocalStorage()
-        } else {
-          this.removeItem(itemId)
-        }
-      }
-    },
+  function toggleCart() {
+    isOpen.value = !isOpen.value
+  }
 
-    clearCart() {
-      this.items = []
-      this.saveToLocalStorage()
-    },
+  function openCart() {
+    isOpen.value = true
+  }
 
-    toggleCart() {
-      this.isOpen = !this.isOpen
-    },
+  function closeCart() {
+    isOpen.value = false
+  }
 
-    openCart() {
-      this.isOpen = true
-    },
+  
+  function saveToLocalStorage() {
+    if (process.client) {
+      localStorage.setItem('mangastore-cart', JSON.stringify({
+        items: items.value,
+        isOpen: isOpen.value
+      }))
+    }
+  }
 
-    closeCart() {
-      this.isOpen = false
-    },
-
-    // Méthodes pour la persistance
-    saveToLocalStorage() {
-      if (process.client) {
-        localStorage.setItem('mangastore-cart', JSON.stringify({
-          items: this.items,
-          isOpen: this.isOpen
-        }))
-      }
-    },
-
-    loadFromLocalStorage() {
-      if (process.client) {
-        const saved = localStorage.getItem('mangastore-cart')
-        if (saved) {
-          try {
-            const data = JSON.parse(saved)
-            this.items = data.items || []
-            this.isOpen = data.isOpen || false
-          } catch (error) {
-            console.error('Erreur lors du chargement du panier:', error)
-          }
+  function loadFromLocalStorage() {
+    if (process.client) {
+      const saved = localStorage.getItem('mangastore-cart')
+      if (saved) {
+        try {
+          const data = JSON.parse(saved)
+          items.value = data.items || []
+          isOpen.value = data.isOpen || false
+        } catch (error) {
+          console.error('Erreur lors du chargement du panier:', error)
         }
       }
     }
   }
-}) 
+
+  
+  return {
+    items,
+    isOpen,
+    totalItems,
+    totalPrice,
+    formattedTotalPrice,
+    isEmpty,
+    addItem,
+    removeItem,
+    updateQuantity,
+    incrementQuantity,
+    decrementQuantity,
+    clearCart,
+    clearCartAndStorage,
+    toggleCart,
+    openCart,
+    closeCart,
+    saveToLocalStorage,
+    loadFromLocalStorage
+  }
+})

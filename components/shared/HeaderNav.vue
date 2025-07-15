@@ -28,21 +28,17 @@ const { profile, fetchProfile } = useProfile()
 const cartStore = useCartStore()
 const router = useRouter()
 
-// Watch user changes to update profile
 watch(() => user.value?.id, async (newId) => {
   if (newId) {
-    console.log('HeaderNav: User changed, fetching profile...')
     await fetchProfile()
   }
 }, { immediate: true })
 
 onMounted(() => {
-  console.log('HeaderNav: Initialisation...')
   cartStore.loadFromLocalStorage()
 })
 
 watch(() => cartStore.totalItems, (newTotal) => {
-  console.log('HeaderNav: Total d\'articles mis à jour:', newTotal)
 })
 
 const logout = async () => {
@@ -52,100 +48,131 @@ const logout = async () => {
 </script>
 
 <template>
-    <NavigationMenu>
-      <NavigationMenuList class="flex items-center gap-6 text-sm">
+  <NavigationMenu>
+    <NavigationMenuList class="flex items-center gap-6 text-sm">
+      <NavigationMenuItem>
+        <NuxtLink 
+          to="/" 
+          class="text-gray-200 hover:text-white transition-colors duration-200 font-medium px-3 py-2 rounded-md hover:bg-white/10"
+        >
+          Accueil
+        </NuxtLink>
+      </NavigationMenuItem>
+      
+      <NavigationMenuItem>
+        <NuxtLink 
+          to="/catalogue" 
+          class="text-gray-200 hover:text-white transition-colors duration-200 font-medium px-3 py-2 rounded-md hover:bg-white/10"
+        >
+          Catalogue
+        </NuxtLink>
+      </NavigationMenuItem>
+      
+      <NavigationMenuItem>
+        <NuxtLink 
+          to="/contact" 
+          class="text-gray-200 hover:text-white transition-colors duration-200 font-medium px-3 py-2 rounded-md hover:bg-white/10"
+        >
+          Contact
+        </NuxtLink>
+      </NavigationMenuItem>
+      
+      <NavigationMenuItem>
+        <NuxtLink 
+          to="/cart" 
+          class="text-gray-200 hover:text-white transition-colors duration-200 relative p-2 rounded-md hover:bg-white/10"
+        >
+          <Icon name="lucide:shopping-cart" class="w-5 h-5" />
+          <span 
+            v-if="cartStore.totalItems > 0"
+            class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
+          >
+            {{ cartStore.totalItems > 99 ? '99+' : cartStore.totalItems }}
+          </span>
+        </NuxtLink>
+      </NavigationMenuItem>
+      
+      <template v-if="user">
         <NavigationMenuItem>
-          <NuxtLink to="/" class="text-gray-200 hover:text-white transition-colors">Accueil</NuxtLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NuxtLink to="/catalogue" class="text-gray-200 hover:text-white transition-colors">Catalogue</NuxtLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NuxtLink to="/contact" class="text-gray-200 hover:text-white transition-colors">Contact</NuxtLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NuxtLink to="/cart" class="text-gray-200 hover:text-white transition-colors relative">
-            <Icon name="lucide:shopping-cart" class="w-5 h-5" />
-            <span 
-              v-if="cartStore.totalItems > 0"
-              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium"
-            >
-              {{ cartStore.totalItems > 99 ? '99+' : cartStore.totalItems }}
-            </span>
-          </NuxtLink>
-        </NavigationMenuItem>
-        
-        <!-- Menu utilisateur -->
-        <template v-if="user">
-          <NavigationMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" class="relative h-8 w-8 rounded-full">
-                  <Avatar class="h-8 w-8">
-                    <AvatarImage :src="user.avatar_url || ''" alt="Photo de profil" />
-                    <AvatarFallback>{{ user.email?.[0]?.toUpperCase() || '?' }}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" class="relative h-9 w-9 rounded-full hover:bg-white/10">
+                <Avatar class="h-8 w-8">
+                  <AvatarImage :src="user.user_metadata?.avatar_url || ''" alt="Photo de profil" />
+                  <AvatarFallback class="bg-red-600 text-white text-sm font-medium">
+                    {{ 
+                      (user.user_metadata?.display_name || user.user_metadata?.username || user.email)?.[0]?.toUpperCase() || '?' 
+                    }}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
 
-              <DropdownMenuContent class="w-56" align="end">
-                <DropdownMenuLabel class="font-normal">
-                  <div class="flex flex-col space-y-1">
-                    <p class="text-sm font-medium text-gray-200">{{ user.email }}</p>
-                    <p class="text-xs text-gray-400 capitalize">{{ profile?.role || 'utilisateur' }}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <NuxtLink to="/account" class="cursor-pointer flex items-center text-gray-200 hover:text-white">
-                    <Icon name="lucide:user" class="w-4 h-4 mr-2" />
-                    Mon profil
-                  </NuxtLink>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <NuxtLink to="/account/orders" class="cursor-pointer flex items-center text-gray-200 hover:text-white">
-                    <Icon name="lucide:package" class="w-4 h-4 mr-2" />
-                    Mes commandes
-                  </NuxtLink>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem @click="logout" class="cursor-pointer text-red-400 hover:text-red-300">
-                  <Icon name="lucide:log-out" class="w-4 h-4 mr-2" />
-                  Se déconnecter
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </NavigationMenuItem>
-        </template>
-        
-        <!-- Menu connexion/inscription pour les utilisateurs non connectés -->
-        <template v-else>
-          <NavigationMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" class="text-gray-200 hover:text-white">
-                  <Icon name="lucide:user" class="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent class="w-56" align="end">
-                <DropdownMenuItem asChild>
-                  <NuxtLink to="/login" class="cursor-pointer flex items-center text-gray-200 hover:text-white">
-                    <Icon name="lucide:log-in" class="w-4 h-4 mr-2" />
-                    Connexion
-                  </NuxtLink>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <NuxtLink to="/register" class="cursor-pointer flex items-center text-gray-200 hover:text-white">
-                    <Icon name="lucide:user-plus" class="w-4 h-4 mr-2" />
-                    Inscription
-                  </NuxtLink>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </NavigationMenuItem>
-        </template>
-      </NavigationMenuList>
-    </NavigationMenu>
+            <DropdownMenuContent class="w-56" align="end">
+              <DropdownMenuLabel class="font-normal">
+                <div class="flex flex-col space-y-1">
+                  <p class="text-sm font-medium leading-none">
+                    {{ user.user_metadata?.display_name || user.user_metadata?.username || user.email?.split('@')[0] }}
+                  </p>
+                  <p class="text-xs leading-none text-muted-foreground">
+                    {{ user.email }}
+                  </p>
+                  <p class="text-xs leading-none text-muted-foreground capitalize">
+                    {{ profile?.role || 'utilisateur' }}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <NuxtLink to="/account" class="cursor-pointer flex items-center">
+                  <Icon name="lucide:user" class="w-4 h-4 mr-2" />
+                  Mon profil
+                </NuxtLink>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <NuxtLink to="/account/orders" class="cursor-pointer flex items-center">
+                  <Icon name="lucide:package" class="w-4 h-4 mr-2" />
+                  Mes commandes
+                </NuxtLink>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem @click="logout" class="cursor-pointer text-red-600 focus:text-red-600">
+                <Icon name="lucide:log-out" class="w-4 h-4 mr-2" />
+                Se déconnecter
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </NavigationMenuItem>
+      </template>
+      
+      <template v-else>
+        <NavigationMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" class="text-gray-200 hover:text-white hover:bg-white/10 px-3 py-2">
+                <Icon name="lucide:user" class="w-4 h-4 mr-2" />
+                <span class="hidden lg:inline">Mon compte</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent class="w-48" align="end">
+              <DropdownMenuItem asChild>
+                <NuxtLink to="/login" class="cursor-pointer flex items-center">
+                  <Icon name="lucide:log-in" class="w-4 h-4 mr-2" />
+                  Connexion
+                </NuxtLink>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <NuxtLink to="/register" class="cursor-pointer flex items-center">
+                  <Icon name="lucide:user-plus" class="w-4 h-4 mr-2" />
+                  Inscription
+                </NuxtLink>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </NavigationMenuItem>
+      </template>
+    </NavigationMenuList>
+  </NavigationMenu>
 </template>
 
 <style scoped>

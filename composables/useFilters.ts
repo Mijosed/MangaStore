@@ -30,6 +30,13 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
     }
   }
 
+  // Nouvelle méthode pour initialiser avec des catégories pré-sélectionnées
+  const initializeWithCategory = (category: string): void => {
+    if (category && !selectedCategories.value.includes(category)) {
+      selectedCategories.value.push(category)
+    }
+  }
+
   const filteredMangas = computed(() => {
     // Filtrage
     let result = mangas.value.filter(manga => {
@@ -84,6 +91,7 @@ export const useFilters = (mangas: Ref<Manga[]>) => {
     searchQuery,
     toggleCategory,
     toggleGenre,
+    initializeWithCategory,
     setSortOption,
     filteredMangas
   }
