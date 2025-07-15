@@ -3,7 +3,6 @@
     <h4 class="text-lg font-semibold mb-4">Ajouter un avis</h4>
     
     <form @submit.prevent="submitReview" class="space-y-4">
-      <!-- Note -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Note <span class="text-red-500">*</span>
@@ -36,7 +35,6 @@
         </p>
       </div>
 
-      <!-- Commentaire -->
       <div>
         <label for="comment" class="block text-sm font-medium text-gray-700 mb-2">
           Commentaire <span class="text-red-500">*</span>
@@ -57,7 +55,6 @@
         </p>
       </div>
 
-      <!-- Messages d'erreur -->
       <div v-if="error" class="bg-red-50 border border-red-200 rounded-md p-3">
         <p class="text-red-600 text-sm">{{ error }}</p>
       </div>
@@ -104,7 +101,6 @@ const props = defineProps({
 
 const emit = defineEmits(['reviewAdded'])
 
-// État du formulaire
 const rating = ref(0)
 const hoverRating = ref(0)
 const comment = ref('')
@@ -113,12 +109,10 @@ const error = ref('')
 const success = ref('')
 const showErrors = ref(false)
 
-// Validation
 const isFormValid = computed(() => {
   return rating.value > 0 && comment.value.trim().length > 0 && comment.value.length <= 500
 })
 
-// Méthodes
 const setRating = (value) => {
   rating.value = value
   showErrors.value = false
@@ -144,7 +138,6 @@ const submitReview = async () => {
       throw new Error('Vous devez être connecté pour laisser un avis')
     }
 
-    // Vérifier si l'utilisateur a déjà laissé un avis pour ce manga
     const { data: existingReview, error: checkError } = await supabase
       .from('reviews')
       .select('id')
@@ -160,7 +153,6 @@ const submitReview = async () => {
       throw new Error('Vous avez déjà laissé un avis pour ce manga')
     }
 
-    // Insérer le nouvel avis
     const { data, error: insertError } = await supabase
       .from('reviews')
       .insert({
@@ -178,7 +170,6 @@ const submitReview = async () => {
     success.value = 'Votre avis a été publié avec succès !'
     resetForm()
     
-    // Notifier le parent que l'avis a été ajouté
     emit('reviewAdded', data[0])
 
   } catch (err) {
@@ -198,7 +189,6 @@ const resetForm = () => {
   success.value = ''
 }
 
-// Effacer les messages après un délai
 watch([error, success], () => {
   if (error.value || success.value) {
     setTimeout(() => {

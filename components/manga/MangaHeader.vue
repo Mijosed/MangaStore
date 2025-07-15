@@ -19,7 +19,6 @@ defineEmits(['add-to-cart', 'increment-quantity', 'decrement-quantity'])
 
 <template>
   <div class="grid lg:grid-cols-5 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-    <!-- Image Column - Optimisée pour éviter les images trop grandes -->
     <div class="lg:col-span-2 md:col-span-1 flex justify-center">
       <div class="relative group">
         <img
@@ -27,7 +26,6 @@ defineEmits(['add-to-cart', 'increment-quantity', 'decrement-quantity'])
           :alt="manga.title"
           class="max-w-[300px] w-full h-auto aspect-[3/4] object-cover rounded-lg shadow-xl border border-gray-200 group-hover:shadow-2xl transition-shadow duration-300"
         />
-        <!-- Badge de note si disponible -->
         <div v-if="manga.average_rating && manga.average_rating > 0" 
              class="absolute top-4 left-4 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold shadow-lg">
           <Icon name="lucide:star" class="w-3 h-3 inline mr-1" />
@@ -36,14 +34,11 @@ defineEmits(['add-to-cart', 'increment-quantity', 'decrement-quantity'])
       </div>
     </div>
 
-    <!-- Details Column - Plus d'espace pour les informations -->
     <div class="lg:col-span-3 md:col-span-2 space-y-6">
-      <!-- En-tête du manga -->
       <div class="border-b border-gray-200 pb-6">
         <h1 class="text-3xl lg:text-4xl font-bold mb-3 text-gray-900 leading-tight">{{ manga.title }}</h1>
         <p class="text-xl text-gray-600 mb-4">par <span class="font-semibold">{{ manga.author || 'Auteur inconnu' }}</span></p>
         
-        <!-- Tags catégorie et genres -->
         <div class="flex gap-2 flex-wrap">
           <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
             {{ manga.category?.name || 'Non catégorisé' }}
@@ -62,7 +57,6 @@ defineEmits(['add-to-cart', 'increment-quantity', 'decrement-quantity'])
         </div>
       </div>
 
-      <!-- Prix et stock -->
       <div class="bg-gray-50 rounded-lg p-6">
         <div class="flex items-center justify-between mb-4">
           <span class="text-4xl font-bold text-gray-900">{{ manga.price }}€</span>
@@ -79,7 +73,6 @@ defineEmits(['add-to-cart', 'increment-quantity', 'decrement-quantity'])
           </div>
         </div>
 
-        <!-- Contrôles de quantité et ajout au panier -->
         <div class="flex gap-4 items-center">
           <div class="flex border border-gray-300 rounded-lg bg-white shadow-sm">
             <Button
@@ -115,7 +108,6 @@ defineEmits(['add-to-cart', 'increment-quantity', 'decrement-quantity'])
         </div>
       </div>
 
-      <!-- Informations rapides -->
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-white border border-gray-200 rounded-lg p-4">
           <div class="text-sm text-gray-500 mb-1">Éditeur</div>
@@ -129,7 +121,6 @@ defineEmits(['add-to-cart', 'increment-quantity', 'decrement-quantity'])
         </div>
       </div>
 
-      <!-- Description courte si disponible -->
       <div v-if="manga.description" class="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 class="font-semibold text-gray-900 mb-2 flex items-center">
           <Icon name="lucide:book-open" class="w-5 h-5 mr-2 text-blue-600" />

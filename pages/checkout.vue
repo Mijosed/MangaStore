@@ -246,7 +246,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
           <form @submit.prevent="handleSubmit" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label for="firstName">Prénom *</Label>
+                <Label for="firstName" class="mb-2">Prénom *</Label>
                 <Input 
                   id="firstName" 
                   v-model="form.firstName" 
@@ -255,7 +255,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
                 />
               </div>
               <div>
-                <Label for="lastName">Nom *</Label>
+                <Label for="lastName" class="mb-2">Nom *</Label>
                 <Input 
                   id="lastName" 
                   v-model="form.lastName" 
@@ -266,7 +266,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
             </div>
 
             <div>
-              <Label for="email">Email *</Label>
+              <Label for="email" class="mb-2">Email *</Label>
               <Input 
                 id="email" 
                 v-model="form.email" 
@@ -277,7 +277,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
             </div>
 
             <div>
-              <Label for="address">Adresse *</Label>
+              <Label for="address" class="mb-2">Adresse *</Label>
               <Input 
                 id="address" 
                 v-model="form.address" 
@@ -288,7 +288,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label for="postalCode">Code postal *</Label>
+                <Label for="postalCode" class="mb-2">Code postal *</Label>
                 <Input 
                   id="postalCode" 
                   v-model="form.postalCode" 
@@ -297,7 +297,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
                 />
               </div>
               <div>
-                <Label for="city">Ville *</Label>
+                <Label for="city" class="mb-2">Ville *</Label>
                 <Input 
                   id="city" 
                   v-model="form.city" 
@@ -306,7 +306,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
                 />
               </div>
               <div>
-                <Label for="country">Pays *</Label>
+                <Label for="country" class="mb-2">Pays *</Label>
                 <Select v-model="form.country" required>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un pays" />
@@ -322,7 +322,7 @@ watch(() => cartStore.isEmpty, (isEmpty) => {
             </div>
 
             <div>
-              <Label for="phone">Téléphone</Label>
+              <Label for="phone" class="mb-2">Téléphone</Label>
               <Input 
                 id="phone" 
                 v-model="form.phone" 

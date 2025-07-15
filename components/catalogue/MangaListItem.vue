@@ -19,9 +19,7 @@ const props = defineProps({
 const isAdding = ref(false)
 
 const addToCart = async () => {
-  // Vérifier si l'utilisateur est connecté
   if (!user.value) {
-    // Rediriger vers la page de connexion si non connecté
     router.push('/login')
     return
   }
@@ -38,10 +36,8 @@ const addToCart = async () => {
       slug: props.manga.slug
     })
     
-    // Feedback visuel
     await new Promise(resolve => setTimeout(resolve, 300))
   } catch (error) {
-    // Afficher l'erreur à l'utilisateur
     alert(error.message || 'Erreur lors de l\'ajout au panier')
   } finally {
     isAdding.value = false
@@ -62,9 +58,7 @@ const addToCart = async () => {
       </NuxtLink>
     </div>
 
-    <!-- Contenu principal -->
     <div class="flex-1 flex flex-col justify-between min-w-0">
-      <!-- Informations du manga -->
       <div class="text-center sm:text-left">
         <NuxtLink :to="`/manga/${manga.slug}`" class="block hover:text-red-600 transition-colors">
           <h3 class="font-semibold text-lg sm:text-base mb-1 line-clamp-1">{{ manga.title }}</h3>
@@ -75,7 +69,6 @@ const addToCart = async () => {
         </p>
       </div>
 
-      <!-- Prix et bouton -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-2">
         <span class="font-bold text-xl sm:text-lg text-red-600">{{ manga.price }}€</span>
         <Button 
