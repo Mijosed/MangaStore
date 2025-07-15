@@ -47,7 +47,7 @@ const logout = async () => {
             </div>
           </div>
 
-          <!-- Navigation principale -->
+          
           <nav class="space-y-1">
             <NuxtLink 
               to="/" 

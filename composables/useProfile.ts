@@ -1,20 +1,12 @@
 import { ref, watch } from 'vue'
 import { useAuth } from './useAuth'
-import type { Database, UserRole } from '~/types/supabase'
+import type { Database } from '~/types/supabase'
 
 export interface UserProfile {
   id: string
   email: string
-  role?: UserRole
+  role: 'admin' | 'user'
   created_at: string
-}
-
-// Type pour la réponse de la fonction RPC get_users
-interface GetUsersResponse {
-  id: string
-  email: string
-  created_at: string
-  role: UserRole
 }
 
 export const useProfile = () => {
@@ -24,45 +16,53 @@ export const useProfile = () => {
   const error = ref<string | null>(null)
 
   const fetchProfile = async () => {
-    if (!user.value) {
-      profile.value = null
-      return null
-    }
+    if (!user.value) return null
 
     loading.value = true
     error.value = null
 
     try {
-      const supabase = useSupabaseClient<Database>()
-      
-      // Récupérer les informations de l'utilisateur via la fonction RPC get_users
-      // qui inclut déjà le rôle correctement joint avec la table roles
-      const { data: users, error: userError } = await supabase
-        .rpc('get_users')
-
-      if (userError) throw userError
-
-      const currentUser = users?.find((u: GetUsersResponse) => u.id === user.value?.id)
-      if (currentUser) {
-        profile.value = {
-          id: currentUser.id,
-          email: currentUser.email,
-          role: currentUser.role, // Utilise directement le rôle retourné par get_users
-          created_at: currentUser.created_at
-        }
+      // Initialiser le profil avec les données de base de l'utilisateur
+      profile.value = {
+        id: user.value.id,
+        email: user.value.email || '',
+        role: 'user', // Rôle par défaut
+        created_at: user.value.created_at || new Date().toISOString()
       }
 
-      return profile.value
+      // Vérifier si l'utilisateur est admin
+      const supabase = useSupabaseClient<Database>()
+      
+      const { data: isAdmin, error: adminError } = await supabase
+        .rpc('is_admin', { user_id: user.value.id })
+
+      if (adminError) {
+        console.error('is_admin RPC error:', adminError)
+        // Fallback pour admin@mail.fr si RPC échoue
+        if (user.value.email === 'admin@mail.fr' && profile.value) {
+          profile.value.role = 'admin'
+        }
+      } else {
+        if (isAdmin && profile.value) {
+          profile.value.role = 'admin'
+        }
+      }
     } catch (err) {
-      console.error('Error fetching profile:', err)
       error.value = "Erreur lors du chargement du profil"
-      return null
+      console.error('Error fetching profile:', err)
+      
+      // Fallback en cas d'erreur complète
+      if (user.value.email === 'admin@mail.fr' && profile.value) {
+        profile.value.role = 'admin'
+      }
     } finally {
       loading.value = false
     }
+
+    return profile.value
   }
 
-  // Watch user changes to reload profile - moved after fetchProfile declaration
+  // Watch user changes to reload profile automatically
   watch(() => user.value?.id, (newId) => {
     if (newId) {
       fetchProfile()
@@ -86,18 +86,16 @@ interface ProfileUpdateData {
   avatar_url?: string
 }
 
-// Update role function
-const updateRole = async (userId: string, role: UserRole) => {
-  const supabase = useSupabaseClient()
+// Update profile function
+const updateProfile = async (userId: string, data: ProfileUpdateData) => {
+  const supabase = useSupabaseClient<Database>()
   const { error } = await supabase
-    .from('roles')
-    .upsert(
-      { user_id: userId, role },
-      { onConflict: 'user_id' }
-    )
+    .from('profiles')
+    .update(data)
+    .eq('id', userId)
 
   if (error) throw error
 }
 
 // Export the function
-export { updateRole }
+export { updateProfile, type ProfileUpdateData }

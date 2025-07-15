@@ -70,7 +70,6 @@ const handleAddToCart = async () => {
       })
     }
     
-    console.log(`${quantity.value} exemplaire(s) ajouté(s) au panier`)
   } catch (error) {
     // Afficher l'erreur à l'utilisateur 
     alert(error.message || 'Erreur lors de l\'ajout au panier')

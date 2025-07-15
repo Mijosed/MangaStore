@@ -8,7 +8,7 @@
     
     import { Card, CardContent } from '@/components/ui/card'
     
-    // Navigation vers le catalogue avec la catégorie pré-sélectionnée
+    
     const navigateToCatalogue = (category: string) => {
       navigateTo({
         path: '/catalogue',

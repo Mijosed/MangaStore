@@ -3,7 +3,6 @@ import { ref, watch } from 'vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-// Props et émissions
 const props = defineProps({
   modelValue: {
     type: String,
@@ -17,15 +16,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'search', 'clear'])
 
-// État local
 const searchQuery = ref(props.modelValue)
 
-// Watcher pour synchroniser avec le parent
 watch(() => props.modelValue, (newValue) => {
   searchQuery.value = newValue
 })
 
-// Méthodes
 const handleInput = () => {
   emit('update:modelValue', searchQuery.value)
   emit('search', searchQuery.value)
@@ -48,7 +44,6 @@ const handleKeydown = (event) => {
 <template>
   <div class="relative w-full max-w-md">
     <div class="relative flex items-center">
-      <!-- Icône de recherche -->
       <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
         <svg 
           class="w-4 h-4" 
@@ -65,7 +60,6 @@ const handleKeydown = (event) => {
         </svg>
       </div>
       
-      <!-- Champ de recherche -->
       <Input
         v-model="searchQuery"
         type="text"
@@ -75,7 +69,6 @@ const handleKeydown = (event) => {
         @keydown="handleKeydown"
       />
       
-      <!-- Bouton de suppression (visible seulement si il y a du texte) -->
       <button
         v-if="searchQuery"
         type="button"
@@ -98,7 +91,6 @@ const handleKeydown = (event) => {
       </button>
     </div>
     
-    <!-- Suggestions/Résultats rapides (optionnel) -->
     <div 
       v-if="searchQuery && $slots.suggestions" 
       class="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50"
@@ -109,5 +101,4 @@ const handleKeydown = (event) => {
 </template>
 
 <style scoped>
-/* Styles supplémentaires si nécessaire */
 </style> 

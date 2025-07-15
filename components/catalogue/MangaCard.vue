@@ -21,9 +21,7 @@ const props = defineProps({
 const isAdding = ref(false)
 
 const addToCart = async () => {
-  // Vérifier si l'utilisateur est connecté
   if (!user.value) {
-    // Rediriger vers la page de connexion si non connecté
     router.push('/login')
     return
   }
@@ -40,10 +38,8 @@ const addToCart = async () => {
       slug: props.manga.slug
     })
     
-    // Feedback visuel
     await new Promise(resolve => setTimeout(resolve, 300))
   } catch (error) {
-    // Afficher l'erreur à l'utilisateur
     alert(error.message || 'Erreur lors de l\'ajout au panier')
   } finally {
     isAdding.value = false
@@ -76,7 +72,7 @@ const addToCart = async () => {
         <p class="text-sm text-gray-500 truncate">{{ manga.author }}</p>
       </div>
       
-      <!-- Affichage du stock -->
+      
       <div class="w-full">
         <StockStatus :manga-id="manga.id" />
       </div>

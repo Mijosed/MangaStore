@@ -18,7 +18,7 @@ import { computed, onMounted } from 'vue'
 import { useStockDisplay } from '~/composables/useStockDisplay'
 
 interface Props {
-  mangaId: string
+  mangaId: string | number
   quantity?: number
   autoFetch?: boolean
 }
@@ -30,11 +30,13 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { fetchSingleStock, getStock, getStockMessage, getStockClass, isInStock } = useStockDisplay()
 
-const stockMessage = computed(() => getStockMessage(props.mangaId, props.quantity))
-const stockClass = computed(() => getStockClass(props.mangaId, props.quantity))
+const mangaIdString = computed(() => String(props.mangaId))
+
+const stockMessage = computed(() => getStockMessage(mangaIdString.value, props.quantity))
+const stockClass = computed(() => getStockClass(mangaIdString.value, props.quantity))
 
 const getStockIcon = () => {
-  const stock = getStock(props.mangaId)
+  const stock = getStock(mangaIdString.value)
   
   if (stock === null) return 'lucide:loader-2'
   if (stock === 0) return 'lucide:x-circle'
@@ -43,10 +45,9 @@ const getStockIcon = () => {
   return 'lucide:check-circle'
 }
 
-// Récupérer le stock au montage si autoFetch est activé
 onMounted(async () => {
-  if (props.autoFetch && getStock(props.mangaId) === null) {
-    await fetchSingleStock(props.mangaId)
+  if (props.autoFetch && getStock(mangaIdString.value) === null) {
+    await fetchSingleStock(mangaIdString.value)
   }
 })
 </script>
