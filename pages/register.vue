@@ -23,7 +23,7 @@ const router = useRouter()
 
 const client = useSupabaseClient()
 
-// Fonction pour vérifier l'unicité du display_name
+
 const checkDisplayNameUniqueness = async (name: string) => {
   if (!name || name.length < 3) {
     displayNameAvailable.value = null
@@ -33,7 +33,7 @@ const checkDisplayNameUniqueness = async (name: string) => {
   checkingDisplayName.value = true
   
   try {
-    // Utiliser la fonction RPC pour vérifier l'unicité
+    
     const { data, error } = await client.rpc('get_users')
     
     if (error) {
@@ -41,7 +41,7 @@ const checkDisplayNameUniqueness = async (name: string) => {
       displayNameAvailable.value = null
     } else {
       const users = data as any[] || []
-      // Vérifier si le display_name existe déjà
+      
       const nameExists = users.some((user: any) => {
         const userDisplayName = user.raw_user_meta_data?.display_name || 
                                user.raw_user_meta_data?.username ||
@@ -59,7 +59,7 @@ const checkDisplayNameUniqueness = async (name: string) => {
   }
 }
 
-// Debounce pour la vérification du display_name
+
 let timeoutId: NodeJS.Timeout
 watch(displayName, (newValue) => {
   clearTimeout(timeoutId)
@@ -69,7 +69,7 @@ watch(displayName, (newValue) => {
 })
 
 const signup = async () => {
-  // Validation du display_name
+  
   if (!displayName.value || displayName.value.length < 3) {
     errorMsg.value = 'Le nom d\'affichage doit contenir au moins 3 caractères'
     return

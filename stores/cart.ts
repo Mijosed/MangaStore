@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { useSupabaseClient } from '#imports'
 
 export interface CartItem {
-  id: string // Changé de number à string pour cohérence avec la base de données
+  id: string
   title: string
   author: string
   price: number
@@ -32,10 +32,8 @@ export const useCartStore = defineStore('cart', () => {
 
   const isEmpty = computed(() => items.value.length === 0)
 
-  // 👉 Actions
   async function addItem(manga: Omit<CartItem, 'quantity'>) {
     try {
-      // Vérifier le stock disponible avant d'ajouter
       const supabase = useSupabaseClient()
       const { data: mangaData, error } = await supabase
         .from('mangas')
@@ -51,7 +49,6 @@ export const useCartStore = defineStore('cart', () => {
       const existingItem = items.value.find(item => item.id === manga.id)
       const currentQuantityInCart = existingItem ? existingItem.quantity : 0
       
-      // Vérifier si on peut ajouter un exemplaire de plus
       if (currentQuantityInCart >= (mangaData as any).stock) {
         throw new Error(`Stock insuffisant. Seulement ${(mangaData as any).stock} exemplaire(s) disponible(s)`)
       }
@@ -115,7 +112,6 @@ export const useCartStore = defineStore('cart', () => {
     saveToLocalStorage()
   }
   
-  // Nouvelle fonction pour vider complètement le panier et supprimer du localStorage
   function clearCartAndStorage() {
     items.value = []
     isOpen.value = false

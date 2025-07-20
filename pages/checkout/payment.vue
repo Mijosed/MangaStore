@@ -2,7 +2,6 @@
 import { useCartStore } from "~/stores/cart";
 import { useStockValidation } from "~/composables/useStockValidation";
 
-// Protection de la route
 definePageMeta({
   middleware: ['auth']
 });
@@ -21,7 +20,6 @@ const {
   setupCardElementWatcher
 } = useStripePayment();
 
-// Récupérer les données du formulaire depuis sessionStorage
 const shippingData = ref(null);
 const isProcessing = ref(false);
 const isRedirecting = ref(false);
@@ -31,7 +29,6 @@ onMounted(() => {
     const stored = sessionStorage.getItem('checkout-shipping');
     if (!stored) {
       console.log('⚠️ Pas de données de livraison trouvées, redirection...');
-      // Rediriger vers la première étape si pas de données
       navigateTo('/checkout');
       return;
     }
@@ -49,7 +46,6 @@ useHead({
   title: "Paiement - MangaStore",
 });
 
-// Fonction pour créer la commande dans Supabase
 const createOrder = async (paymentIntentId) => {
   try {
     const supabase = useSupabaseClient();
@@ -102,7 +98,7 @@ const createOrder = async (paymentIntentId) => {
   }
 };
 
-// Chargement de Stripe
+
 onMounted(async () => {
   if (cartStore.isEmpty) {
     navigateTo('/cart');
@@ -124,7 +120,6 @@ const handleSubmit = async () => {
   isProcessing.value = true;
 
   try {
-    // Validation du stock
     const stockValidation = await validateCartStock(cartStore.items);
     if (!stockValidation.isValid) {
       alert("Erreurs de stock:\n" + stockValidation.errors.join("\n"));
@@ -132,7 +127,6 @@ const handleSubmit = async () => {
       return;
     }
 
-    // Création du payment intent
     const paymentIntentResponse = await createPaymentIntent(
       cartStore.totalPrice * 1.2,
       'eur',
@@ -151,7 +145,6 @@ const handleSubmit = async () => {
       }
     );
 
-    // Confirmation du paiement
     const paymentIntent = await confirmCardPayment(
       paymentIntentResponse.clientSecret,
       {
@@ -169,19 +162,15 @@ const handleSubmit = async () => {
     if (paymentIntent.status === "succeeded") {
       console.log("✅ Paiement réussi");
 
-      // Mise à jour du stock
       await updateStockAfterOrder(cartStore.items);
       console.log("✅ Stock mis à jour");
 
-      // Création de la commande
       await createOrder(paymentIntent.id);
       console.log("✅ Commande créée");
 
-      // Nettoyage
       cartStore.clearCart();
       clearFormData();
       
-      // Redirection
       isRedirecting.value = true;
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -210,7 +199,6 @@ const goBack = () => {
 
 <template>
   <div class="max-w-4xl mx-auto p-4 lg:p-6">
-    <!-- DEBUG INFO -->
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
       <h3 class="font-bold text-blue-900">🔍 Page de Paiement - Debug Info</h3>
       <p class="text-blue-800 text-sm">
@@ -218,7 +206,6 @@ const goBack = () => {
       </p>
     </div>
 
-    <!-- Écran de redirection -->
     <div v-if="isRedirecting" class="fixed inset-0 bg-white bg-opacity-95 flex items-center justify-center z-50">
       <div class="text-center">
         <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
@@ -230,16 +217,13 @@ const goBack = () => {
       </div>
     </div>
 
-    <!-- Étapes -->
     <CheckoutSteps :current-step="2" />
 
     <h1 class="text-3xl font-bold mb-8 text-center">Paiement sécurisé</h1>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Formulaire de paiement -->
       <div class="lg:col-span-2">
         <form @submit.prevent="handleSubmit" class="space-y-6">
-          <!-- Informations de paiement -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
               <h2 class="text-xl font-semibold text-gray-900 flex items-center">
@@ -249,7 +233,6 @@ const goBack = () => {
             </div>
             
             <div class="p-6 space-y-6">
-              <!-- Élément Stripe -->
               <div class="space-y-3">
                 <Label class="text-sm font-medium text-gray-700">Informations de carte *</Label>
                 <div 
@@ -260,7 +243,7 @@ const goBack = () => {
                 <div id="card-errors" class="text-red-600 text-sm" role="alert"></div>
               </div>
 
-              <!-- État de chargement -->
+
               <div v-if="!stripeLoaded" class="text-center py-8">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto mb-3"></div>
                 <p class="text-sm text-gray-600 mb-2">
@@ -269,7 +252,6 @@ const goBack = () => {
                 <div id="stripe-load-error" class="text-red-600 text-sm"></div>
               </div>
 
-              <!-- Boutons -->
               <div class="flex gap-4">
                 <Button 
                   type="button"
@@ -302,7 +284,6 @@ const goBack = () => {
                 </Button>
               </div>
               
-              <!-- Sécurité -->
               <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div class="flex items-start">
                   <Icon name="lucide:shield-check" class="w-5 h-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
@@ -319,7 +300,6 @@ const goBack = () => {
         </form>
       </div>
 
-      <!-- Résumé -->
       <div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-6">
           <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
@@ -327,7 +307,6 @@ const goBack = () => {
           </div>
 
           <div class="p-6 space-y-6">
-            <!-- Adresse de livraison -->
             <div v-if="shippingData">
               <h3 class="font-medium text-gray-900 mb-3">Livraison</h3>
               <div class="text-sm text-gray-600 space-y-1">
@@ -340,7 +319,6 @@ const goBack = () => {
 
             <Separator />
 
-            <!-- Articles -->
             <div>
               <h3 class="font-medium text-gray-900 mb-3">Articles ({{ cartStore.totalItems }})</h3>
               <div class="space-y-3">
@@ -365,7 +343,6 @@ const goBack = () => {
 
             <Separator />
 
-            <!-- Totaux -->
             <div class="space-y-3">
               <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Sous-total</span>

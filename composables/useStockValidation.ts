@@ -4,9 +4,6 @@ import type { CartItem } from '~/stores/cart'
 export const useStockValidation = () => {
   const supabase = useSupabaseClient()
 
-  /**
-   * Valide que tous les articles du panier ont un stock suffisant
-   */
   const validateCartStock = async (cartItems: CartItem[]) => {
     const stockErrors: string[] = []
 
@@ -36,13 +33,9 @@ export const useStockValidation = () => {
     }
   }
 
-  /**
-   * Met à jour le stock après une commande réussie
-   */
   const updateStockAfterOrder = async (cartItems: CartItem[]) => {
     for (const item of cartItems) {
       try {
-        // Récupérer le stock actuel
         const { data: manga, error: fetchError } = await supabase
           .from('mangas')
           .select('stock')
@@ -54,10 +47,8 @@ export const useStockValidation = () => {
           continue
         }
 
-        // Calculer le nouveau stock
         const newStock = Math.max(0, (manga as any).stock - item.quantity)
 
-        // Mettre à jour le stock
         const { error: updateError } = await (supabase as any)
           .from('mangas')
           .update({ stock: newStock })
@@ -76,13 +67,9 @@ export const useStockValidation = () => {
     return { success: true }
   }
 
-  /**
-   * Restaure le stock en cas d'erreur lors de la commande
-   */
   const restoreStockAfterError = async (cartItems: CartItem[]) => {
     for (const item of cartItems) {
       try {
-        // Récupérer le stock actuel
         const { data: manga, error: fetchError } = await supabase
           .from('mangas')
           .select('stock')
@@ -94,10 +81,8 @@ export const useStockValidation = () => {
           continue
         }
 
-        // Restaurer le stock
         const restoredStock = (manga as any).stock + item.quantity
 
-        // Mettre à jour le stock
         await (supabase as any)
           .from('mangas')
           .update({ stock: restoredStock })

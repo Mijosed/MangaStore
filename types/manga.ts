@@ -48,7 +48,7 @@ export interface Manga {
   specifications: MangaSpecifications
   created_at?: string
   updated_at?: string
-  releaseDate?: string // Alias pour release_date
+  releaseDate?: string
 }
 
 export interface MangaListItem {
