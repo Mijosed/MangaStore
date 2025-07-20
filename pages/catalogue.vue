@@ -12,10 +12,10 @@ import { useFilters } from '~/composables/useFilters'
 import type { SortOption } from '~/composables/useFilters'
 import { usePagination } from '~/composables/usePagination'
 
-// Récupération des paramètres de l'URL
+
 const route = useRoute()
 
-// Initialisation des composables
+
 const { categories, genres, mangas, isLoading, fetchCategories, fetchGenres, fetchMangas } = useCatalogue()
 const { 
   viewMode, 
@@ -37,15 +37,15 @@ const {
   getVisiblePages 
 } = usePagination(filteredMangas)
 
-// État pour le panneau mobile des filtres
+
 const isMobileFiltersOpen = ref(false)
 
-// Computed pour le nombre de filtres actifs
+
 const activeFiltersCount = computed(() => {
   return selectedCategories.value.length + selectedGenres.value.length
 })
 
-// Handlers
+
 const handleSearch = async (query: string) => {
   searchQuery.value = query
   currentPage.value = 1
@@ -71,7 +71,7 @@ const handleToggleGenre = (genre: string) => {
   currentPage.value = 1
 }
 
-// Chargement initial des données
+
 onMounted(async () => {
   await Promise.all([
     fetchCategories(),
@@ -79,7 +79,7 @@ onMounted(async () => {
     fetchMangas()
   ])
   
-  // Appliquer le filtre de catégorie depuis l'URL si présent
+  
   const categoryFromRoute = route.query.category as string
   if (categoryFromRoute) {
     initializeWithCategory(categoryFromRoute)
@@ -94,11 +94,11 @@ onMounted(async () => {
     </div>
     
     <div v-else>
-      <!-- Titre et bouton filtres mobile -->
+  
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 class="text-2xl md:text-3xl font-bold">Catalogue</h1>
         
-        <!-- Bouton filtres pour mobile -->
+  
         <div class="lg:hidden">
           <Sheet v-model:open="isMobileFiltersOpen">
             <SheetTrigger asChild>
@@ -132,7 +132,7 @@ onMounted(async () => {
       </div>
 
       <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <!-- Filtres Desktop -->
+    
         <div class="hidden lg:block">
           <CatalogueFilters
             :categories="categories"
@@ -144,9 +144,9 @@ onMounted(async () => {
           />
         </div>
 
-        <!-- Contenu principal -->
+  
         <div class="flex-1 min-w-0">
-          <!-- En-tête avec recherche et options -->
+          
           <CatalogueHeader
             v-model:view-mode="viewMode"
             v-model:sort-option="sortOption"
@@ -158,7 +158,7 @@ onMounted(async () => {
             class="mb-6"
           />
 
-          <!-- Grille ou liste de mangas responsive -->
+          
           <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
             <MangaCard
               v-for="manga in paginatedMangas"
@@ -174,7 +174,7 @@ onMounted(async () => {
             />
           </div>
 
-          <!-- Message si aucun résultat -->
+          
           <div v-if="filteredMangas.length === 0" class="text-center py-12">
             <Icon name="lucide:search-x" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <h3 class="text-xl font-medium text-gray-900 mb-2">Aucun manga trouvé</h3>
@@ -184,7 +184,7 @@ onMounted(async () => {
             </Button>
           </div>
 
-          <!-- Pagination -->
+          
           <div v-if="filteredMangas.length > 0" class="mt-8">
             <CataloguePagination
               v-model:current-page="currentPage"

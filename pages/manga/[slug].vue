@@ -21,10 +21,10 @@ const { manga, loading, error, fetchManga, refreshReviews } = useManga()
 const cartStore = useCartStore()
 const { user } = useAuth()
 
-// Gestion locale de la quantité
+
 const quantity = ref(1)
 
-// Computed properties pour sécuriser l'accès aux données
+
 const mangaSpecs = computed(() => manga.value?.specifications || {
   format: 'Format non spécifié',
   pages: 'Non spécifié',
@@ -51,14 +51,14 @@ const decrementQuantity = () => {
 const handleAddToCart = async () => {
   if (!manga.value) return
 
-  // Vérifier si l'utilisateur est connecté
+  
   if (!user.value) {
     router.push('/login')
     return
   }
 
   try {
-    // Ajouter la quantité demandée au panier
+    
     for (let i = 0; i < quantity.value; i++) {
       await cartStore.addItem({
         id: manga.value.id,
@@ -71,7 +71,7 @@ const handleAddToCart = async () => {
     }
     
   } catch (error) {
-    // Afficher l'erreur à l'utilisateur 
+     
     alert(error.message || 'Erreur lors de l\'ajout au panier')
   }
 }
@@ -86,7 +86,7 @@ const handleReviewAdded = async () => {
   }
 }
 
-// Charger les données au montage du composant
+
 onMounted(async () => {
   const data = await fetchManga(route.params.slug)
   if (!data) {
@@ -97,20 +97,20 @@ onMounted(async () => {
 
 <template>
   <div class="container mx-auto px-4 py-8">
-    <!-- Loading state -->
+
     <div v-if="loading" class="flex justify-center items-center min-h-[60vh]">
       <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
     </div>
 
-    <!-- Error state -->
+
     <div v-else-if="error" class="text-center min-h-[60vh] flex flex-col items-center justify-center">
       <p class="text-red-500 mb-4">{{ error }}</p>
       <Button @click="fetchManga(route.params.slug)">Réessayer</Button>
     </div>
 
-    <!-- Content -->
+
     <div v-else-if="manga">
-      <!-- Bouton retour au catalogue -->
+
       <div class="mb-6">
         <Button 
           variant="outline" 
@@ -184,14 +184,14 @@ onMounted(async () => {
 
         <TabsContent value="reviews" class="mt-6">
           <div class="space-y-6">
-            <!-- Formulaire d'ajout d'avis (seulement si connecté) -->
+    
             <ReviewForm
               v-if="user"
               :manga-id="manga.id"
               @review-added="handleReviewAdded"
             />
             
-            <!-- Message pour les utilisateurs non connectés -->
+            
             <div v-else class="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div class="flex items-center gap-3">
                 <Icon name="lucide:info" class="w-5 h-5 text-blue-600" />
@@ -214,7 +214,7 @@ onMounted(async () => {
               </div>
             </div>
 
-            <!-- Liste des avis -->
+            
             <div class="bg-white rounded-lg p-6 shadow-sm border">
               <h3 class="text-xl font-semibold mb-4">Avis des lecteurs</h3>
               

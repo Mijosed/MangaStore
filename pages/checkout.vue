@@ -9,7 +9,6 @@ definePageMeta({
 const cartStore = useCartStore();
 const { validateCartStock, updateStockAfterOrder } = useStockValidation();
 
-// État du formulaire
 const form = ref({
   firstName: "",
   lastName: "",
@@ -21,7 +20,6 @@ const form = ref({
   phone: "",
 });
 
-// États du paiement
 const isSubmitting = ref(false);
 const showPayment = ref(false);
 const stripe = ref(null);
@@ -33,14 +31,12 @@ useHead({
   title: "Commande - MangaStore",
 });
 
-// Redirection si panier vide
 watch(() => cartStore.isEmpty, (isEmpty) => {
   if (isEmpty) {
     navigateTo('/cart');
   }
 }, { immediate: true });
 
-// Validation du formulaire
 const validateForm = () => {
   const errors = [];
   if (!form.value.firstName.trim()) errors.push('Le prénom est requis');
@@ -56,7 +52,6 @@ const validateForm = () => {
   };
 };
 
-// Chargement de Stripe
 const loadStripe = async () => {
   if (process.client && !stripe.value) {
     try {
@@ -102,7 +97,6 @@ const loadStripe = async () => {
   }
 };
 
-// Passer à l'étape paiement
 const handleFormSubmit = async () => {
   const validation = validateForm();
   
@@ -116,7 +110,6 @@ const handleFormSubmit = async () => {
   await loadStripe();
 };
 
-// Traitement du paiement
 const handlePayment = async () => {
   if (!stripe.value || !cardElement.value) {
     alert("Erreur de chargement du système de paiement");
@@ -125,15 +118,13 @@ const handlePayment = async () => {
 
   isSubmitting.value = true;
 
-  try {
-    // Validation du stock
+      try {
     const stockValidation = await validateCartStock(cartStore.items);
     if (!stockValidation.isValid) {
       alert("Erreurs de stock:\n" + stockValidation.errors.join("\n"));
       return;
     }
 
-    // Création du payment intent
     const response = await $fetch('/api/create-payment-intent', {
       method: 'POST',
       body: {
@@ -142,7 +133,6 @@ const handlePayment = async () => {
       }
     });
 
-    // Confirmation du paiement
     const { error, paymentIntent } = await stripe.value.confirmCardPayment(response.clientSecret, {
       payment_method: {
         card: cardElement.value,
@@ -166,7 +156,6 @@ const handlePayment = async () => {
     if (paymentIntent.status === 'succeeded') {
       console.log("✅ Paiement réussi, création de la commande...");
       
-      // Création de la commande
       const supabase = useSupabaseClient();
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -209,22 +198,17 @@ const handlePayment = async () => {
 
       console.log("✅ Articles ajoutés");
       
-      // Mise à jour du stock
       await updateStockAfterOrder(cartStore.items);
       console.log("✅ Stock mis à jour");
       
-      // Nettoyage
       cartStore.clearCart();
       console.log("✅ Panier vidé");
       
-      // Redirection vers succès
       console.log("🔄 Redirection vers /success...");
       isRedirecting.value = true;
       
-      // Petit délai pour s'assurer que tout est bien traité
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Forcer la redirection côté client
       if (process.client) {
         window.location.href = '/success';
       } else {
@@ -246,7 +230,6 @@ const goBack = () => {
 
 <template>
   <div class="max-w-4xl mx-auto p-4 lg:p-6">
-    <!-- Écran de redirection -->
     <div v-if="isRedirecting" class="fixed inset-0 bg-white bg-opacity-95 flex items-center justify-center z-50">
       <div class="text-center">
         <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
@@ -262,7 +245,6 @@ const goBack = () => {
       {{ showPayment ? 'Paiement sécurisé' : 'Informations de livraison' }}
     </h1>
 
-    <!-- Panier vide -->
     <div v-if="cartStore.isEmpty" class="text-center py-16">
       <Icon name="lucide:shopping-cart" class="w-20 h-20 mx-auto text-gray-400 mb-6" />
       <h2 class="text-xl font-semibold text-gray-700 mb-4">Votre panier est vide</h2>
@@ -272,12 +254,9 @@ const goBack = () => {
       </NuxtLink>
     </div>
 
-    <!-- Contenu principal -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Formulaire ou Paiement -->
-      <div class="lg:col-span-2">
+          <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
         
-        <!-- ÉTAPE 1: Formulaire -->
         <form v-if="!showPayment" @submit.prevent="handleFormSubmit" class="space-y-6">
           <div class="bg-white rounded-xl shadow-sm border p-6">
             <h2 class="text-xl font-semibold mb-4">Informations personnelles</h2>
@@ -325,7 +304,6 @@ const goBack = () => {
           </div>
         </form>
 
-        <!-- ÉTAPE 2: Paiement -->
         <div v-else>
           <form @submit.prevent="handlePayment" class="space-y-6">
             <div class="bg-white rounded-xl shadow-sm border p-6">
@@ -356,7 +334,6 @@ const goBack = () => {
         </div>
       </div>
 
-      <!-- Résumé de commande -->
       <div>
         <div class="bg-white rounded-xl shadow-sm border p-6 sticky top-6">
           <h2 class="text-xl font-semibold mb-4">Votre commande</h2>

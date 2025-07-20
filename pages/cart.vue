@@ -12,7 +12,7 @@
     </div>
 
     <div v-else class="space-y-6">
-      <!-- Liste des articles -->
+  
       <div class="bg-white rounded-lg shadow-sm border">
         <div v-for="item in cartStore.items" :key="item.id" class="flex items-center p-4 border-b last:border-b-0">
           <img :src="item.cover" :alt="item.title" class="w-16 h-20 object-cover rounded-md mr-4" />
