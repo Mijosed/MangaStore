@@ -6,9 +6,6 @@ export const useStockDisplay = () => {
   const stockInfo = ref<Record<string, number>>({})
   const loading = ref(false)
 
-  /**
-   * Récupère les informations de stock pour plusieurs mangas
-   */
   const fetchStockInfo = async (mangaIds: string[]) => {
     if (mangaIds.length === 0) return
 
@@ -24,7 +21,6 @@ export const useStockDisplay = () => {
         return
       }
 
-      // Mettre à jour le stockInfo
       const stockMap: Record<string, number> = {}
       data?.forEach((manga: any) => {
         stockMap[manga.id] = manga.stock
@@ -37,9 +33,6 @@ export const useStockDisplay = () => {
     }
   }
 
-  /**
-   * Récupère le stock pour un manga spécifique
-   */
   const fetchSingleStock = async (mangaId: string) => {
     try {
       const { data, error } = await supabase
@@ -62,24 +55,15 @@ export const useStockDisplay = () => {
     }
   }
 
-  /**
-   * Obtient le stock d'un manga depuis le cache ou la base de données
-   */
   const getStock = (mangaId: string) => {
     return stockInfo.value[mangaId] ?? null
   }
 
-  /**
-   * Vérifie si un manga est en stock
-   */
   const isInStock = (mangaId: string, quantity: number = 1) => {
     const stock = getStock(mangaId)
     return stock !== null && stock >= quantity
   }
 
-  /**
-   * Obtient le message de stock à afficher
-   */
   const getStockMessage = (mangaId: string, quantity: number = 1) => {
     const stock = getStock(mangaId)
     
@@ -90,9 +74,6 @@ export const useStockDisplay = () => {
     return `En stock (${stock} disponible${stock > 1 ? 's' : ''})`
   }
 
-  /**
-   * Obtient la classe CSS pour le statut du stock
-   */
   const getStockClass = (mangaId: string, quantity: number = 1) => {
     const stock = getStock(mangaId)
     

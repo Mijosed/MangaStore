@@ -142,5 +142,4 @@ export interface Database {
   }
 }
 
-// Types inférés pour useSupabaseClient
 export type SupabaseClient = ReturnType<typeof useSupabaseClient>
